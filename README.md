@@ -3,6 +3,15 @@ MagicMirror module for displaying stock price with Alphavantage API
 
 
 ## Screenshot
+- `mode:table`
+![ScreenShot for Table](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_table.png)
+
+- `mode:ticker`
+![ScreenShot for Ticker](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_ticker.png)
+
+- `mode:series`
+![ScreenShot for Series](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_series.png)
+
 
 ## Installation
 ```shell
@@ -14,9 +23,12 @@ npm install
 
 ## Alphavantage Key
 https://www.alphavantage.co/
+
 Free account has a limit of quota (5 request per minute).
 
-This module is using a pooler to avoid the limit.
+This module uses pooling to avoid this limit. Therefore, the first loading of each stock data will take some seconds(about 15sec per each stock).
+
+If you have premium account, you can adjust `poolInterval` for shorter refreshing. 
 
 
 
@@ -38,7 +50,7 @@ This module is using a pooler to avoid the limit.
 {
   //disabled:true,
   module: "MMM-AVStock",
-  position: "top_right",
+  position: "top_right", //"bottom_bar" is better for `mode:ticker`
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY", // https://www.alphavantage.co/
     timeFormat: "YYYY-MM-DD HH:mm:ss",
