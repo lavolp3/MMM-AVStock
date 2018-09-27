@@ -1,0 +1,21 @@
+{
+  "name": "MMM-AVStock",
+  "version": "1.0.0",
+  "description": "MagicMirror Module for displaying financial stock data with Alphavantage API",
+  "main": "MMM-AVStock.js",
+  "repository": "https://github.com/eouia/MMM-AVStock",
+  "keywords": [
+    "magic mirror",
+    "module",
+    "stock",
+    "alphavantage"
+  ],
+  "author": "eouia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eouia/MMM-AVStock/issues"
+  },
+  "dependencies": {
+    "alphavantage": "^1.1.1"
+  }
+}
