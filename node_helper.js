@@ -79,6 +79,7 @@ module.exports = NodeHelper.create({
         }
         //console.log("[AVSTOCK] Response is parsed - ", symbol)
         var dF = Math.pow(10, 2)		//decimal Factor, converts decimals to numbers that needs to be multiplied for Math.round
+        console.log("df: "+df)
         var result = {
           "symbol": data["Global Quote"]["01. symbol"],
           "open": (Math.round(parseFloat(data["Global Quote"]["02. open"])*dF))/dF,

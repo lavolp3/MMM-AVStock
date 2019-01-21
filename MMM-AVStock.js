@@ -22,9 +22,9 @@ Module.register("MMM-AVStock", {
     alias: ["APPLE", "", "SAMSUNG Electronics"],
     tickerDuration: 60,
     chartDays: 90,
-    poolInterval : 1000*15, // at least 13 sec is needed.
+    poolInterval : 1000*30, // at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
-	decimals : 2,
+    decimals : 3,
   },
 
   getStyles: function() {
