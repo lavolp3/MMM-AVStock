@@ -80,19 +80,18 @@ module.exports = NodeHelper.create({
           console.log("[AVSTOCK] Data Error: There is no available data for", symbol)
         }
         //console.log("[AVSTOCK] Response is parsed - ", symbol)
-        var dF = Math.pow(10, 2)		//decimal Factor, converts decimals to numbers that needs to be multiplied for Math.round
-        console.log("df: "+df)
+        var dec = this.config.decimals		//decimal Factor, converts decimals to numbers that needs to be multiplied for Math.round
         var result = {
           "symbol": data["Global Quote"]["01. symbol"],
-          "open": (Math.round(parseFloat(data["Global Quote"]["02. open"])*dF))/dF,
-          "high": (Math.round(parseFloat(data["Global Quote"]["03. high"])*dF))/dF,
-          "low": (Math.round(parseFloat(data["Global Quote"]["04. low"])*dF))/dF,
-          "price": (Math.round(parseFloat(data["Global Quote"]["05. price"])*dF))/dF,
+          "open": parseFloat(data["Global Quote"]["02. open"]).toFixed(dec),
+          "high": parseFloat(data["Global Quote"]["03. high"]).toFixed(dec),
+          "low": parseFloat(data["Global Quote"]["04. low"]).toFixed(dec),
+          "price": parseFloat(data["Global Quote"]["05. price"]).toFixed(dec),
           "volume": parseInt(data["Global Quote"]["06. volume"]).toLocaleString(),
           "day": data["Global Quote"]["07. latest trading day"],
-          "close": (Math.round(parseFloat(data["Global Quote"]["08. previous close"])*dF))/dF,
-          "change": (Math.round(parseFloat(data["Global Quote"]["09. change"])*dF))/dF,
-          "changeP": (Math.round(parseFloat(data["Global Quote"]["10. change percent"])*dF))/dF+"%",
+          "close": parseFloat(data["Global Quote"]["08. previous close"]).toFixed(dec),
+          "change": parseFloat(data["Global Quote"]["09. change"]).toFixed(dec),
+          "changeP": parseFloat(data["Global Quote"]["10. change percent"]).toFixed(dec)+"%",
           "requestTime": moment().format(cfg.timeFormat),
           "hash": symbol.hashCode()
         }
