@@ -60,6 +60,8 @@ If you have premium account, you can adjust `poolInterval` for shorter refreshin
     chartDays: 90, //For `mode:series`, how much daily data will be taken. (max. 90)
     poolInterval : 1000*15, // If your AV account is free, at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
+    barChart : false //show bar chart (candle sticks) if mode is Series
+    coloredBars : true //colored bars: red and green for negative and positiva candles
   }
 },
 ```

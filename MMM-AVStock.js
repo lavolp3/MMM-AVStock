@@ -24,6 +24,8 @@ Module.register("MMM-AVStock", {
     chartDays: 90,
     poolInterval : 1000*15, // at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
+    barChart: false,
+    coloredBars: true,
   },
 
   getStyles: function() {
@@ -243,6 +245,7 @@ Module.register("MMM-AVStock", {
     var lastPrice = 0
     var requestTime = ""
 
+    //determine max, min etc. for graph size
     for(i in series) {
       var s = series[i]
       co[i] = s.close
@@ -253,37 +256,70 @@ Module.register("MMM-AVStock", {
         ud = s.candle
         lastPrice = s.close
         requestTime = s.requestTime
-      } else {
+      } else if (!this.config.barChart) {
         if (s.close > max) {
           max = s.close
         }
         if (s.close < min) {
           min = s.close
         }
-        if (i == 1) {
-          changeV = Math.round((lastPrice - s.close) * 10000) / 10000
+      } else {
+        if (s.high > max) {
+          max = s.high
+        }
+        if (s.low < min) {
+          min = s.low
         }
       }
+      if (i == 1) {
+          changeV = Math.round((lastPrice - s.close) * 10000) / 10000
+      }
     }
-    var cvs = document.getElementById("AVSTOCK_CANVAS")
 
+    var cvs = document.getElementById("AVSTOCK_CANVAS")
     var ctx = cvs.getContext("2d")
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+    ctx.beginPath()   //draw line or bar chart
+    var xs = Math.round(((ctx.canvas.width)-10) / series.length)
+    var x = 5
+    var y = 0
+    var y2 = 0
     ctx.strokeStyle = "#FFFFFF"
     ctx.lineWidth = 3
-    ctx.beginPath();
-    var xs = Math.round(ctx.canvas.width / series.length)
-    var x = 0
-    var y = 0
-    while(series.length > 0) {
-      var t = series.pop()
-      var c = t.close
-      y = ctx.canvas.height - (((c - min) / (max - min)) * ctx.canvas.height)
-      ctx.lineTo(x, y)
-      x += xs
+    if (!this.config.barChart) {
+      ctx.beginPath()
+      while (series.length > 0) {
+        var t = series.pop()
+        var c = t.close
+        y = ctx.canvas.height - (((c - min) / (max - min)) * ctx.canvas.height)
+        ctx.lineTo(x, y)
+        x += xs
+      }
+      ctx.stroke()
+    } else {
+      while (series.length > 0) {
+        var t = series.pop()
+        ctx.lineWidth = 1
+        y = ctx.canvas.height - (((t.high - min) / (max - min)) * ctx.canvas.height)
+        y2 = ctx.canvas.height - (((t.low - min) / (max - min)) * ctx.canvas.height)
+        ctx.beginPath()    //drawing the candlestick from t.high to t.low
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y2)
+        ctx.stroke()
+        ctx.beginPath()  //drawing the candle from t.open to t.close
+        var rectMinY = ctx.canvas.height - (((Math.min (t.close, t.open) - min) / (max - min)) * ctx.canvas.height)
+        var rectMaxY = ctx.canvas.height - (((Math.max (t.close, t.open) - min) / (max - min)) * ctx.canvas.height)
+        if (this.config.coloredBars) {
+          ctx.fillStyle = ((t.close < t.open) ? "red" : "green")
+        } else {
+          ctx.fillStyle = ((t.close < t.open) ? "black" : "white")
+        }
+        ctx.fillRect(x-Math.round(xs/2)+2, rectMinY, xs-4, rectMaxY-rectMinY)      //filled black or white (or colored) candle written above the candlestick
+        ctx.strokeRect(x-Math.round(xs/2)+2, rectMinY, xs-4, rectMaxY-rectMinY)    //white border
+        x += xs
+      }
     }
-    ctx.stroke()
-
 
 
     var stock = document.getElementById("symbol_series")
