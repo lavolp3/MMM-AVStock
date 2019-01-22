@@ -30,7 +30,9 @@ module.exports = NodeHelper.create({
     }
 
     if (noti == "START") {
-      this.prepareScan()
+      if (this.pooler.length == 0) {
+        this.prepareScan()
+      }
     }
   },
 
@@ -67,8 +69,8 @@ module.exports = NodeHelper.create({
         return
       }
       data = JSON.parse(body)
-      if (data.hasOwnProperty("Information")) {
-        console.log("[AVSTOCK] Error: API Call limit over.")
+      if (data.hasOwnProperty("Note")) {
+        console.log("[AVSTOCK] Error: API Call limit exceeded.")
       }
       if (data.hasOwnProperty("Error Message")) {
         console.log("[AVSTOCK] Error:", data["Error Message"])
