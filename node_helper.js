@@ -80,17 +80,19 @@ module.exports = NodeHelper.create({
           console.log("[AVSTOCK] Data Error: There is no available data for", symbol)
         }
         //console.log("[AVSTOCK] Response is parsed - ", symbol)
+        var dF = Math.pow(10, 2)		//decimal Factor, converts decimals to numbers that needs to be multiplied for Math.round
+        console.log("df: "+df)
         var result = {
           "symbol": data["Global Quote"]["01. symbol"],
-          "open": data["Global Quote"]["02. open"],
-          "high": data["Global Quote"]["03. high"],
-          "low": data["Global Quote"]["04. low"],
-          "price": data["Global Quote"]["05. price"],
-          "volume": data["Global Quote"]["06. volume"],
+          "open": (Math.round(parseFloat(data["Global Quote"]["02. open"])*dF))/dF,
+          "high": (Math.round(parseFloat(data["Global Quote"]["03. high"])*dF))/dF,
+          "low": (Math.round(parseFloat(data["Global Quote"]["04. low"])*dF))/dF,
+          "price": (Math.round(parseFloat(data["Global Quote"]["05. price"])*dF))/dF,
+          "volume": parseInt(data["Global Quote"]["06. volume"]).toLocaleString(),
           "day": data["Global Quote"]["07. latest trading day"],
-          "close": data["Global Quote"]["08. previous close"],
-          "change": data["Global Quote"]["09. change"],
-          "changeP": data["Global Quote"]["10. change percent"],
+          "close": (Math.round(parseFloat(data["Global Quote"]["08. previous close"])*dF))/dF,
+          "change": (Math.round(parseFloat(data["Global Quote"]["09. change"])*dF))/dF,
+          "changeP": (Math.round(parseFloat(data["Global Quote"]["10. change percent"])*dF))/dF+"%",
           "requestTime": moment().format(cfg.timeFormat),
           "hash": symbol.hashCode()
         }
