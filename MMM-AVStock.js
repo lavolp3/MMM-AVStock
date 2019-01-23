@@ -17,13 +17,14 @@ const headerTitle = ["Symbol", "Cur.Price", "Prev.Close", "CHG", "CHG%", "Volume
 Module.register("MMM-AVStock", {
   defaults: {
     apiKey : "",
-    timeFormat: "YYYY-MM-DD HH:mm:ss",
+    timeFormat: "DD-MM HH:mm",
     symbols : ["aapl", "GOOGL", "005930.KS"],
     alias: ["APPLE", "", "SAMSUNG Electronics"],
     tickerDuration: 60,
     chartDays: 90,
     poolInterval : 1000*15, // at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
+    decimals : 4,
     candleSticks: false,
     coloredCandles: true,
   },

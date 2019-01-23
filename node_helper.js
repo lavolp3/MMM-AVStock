@@ -30,7 +30,9 @@ module.exports = NodeHelper.create({
     }
 
     if (noti == "START") {
-      this.prepareScan()
+      if (this.pooler.length == 0) {
+        this.prepareScan()
+      }
     }
   },
 
@@ -67,8 +69,8 @@ module.exports = NodeHelper.create({
         return
       }
       data = JSON.parse(body)
-      if (data.hasOwnProperty("Information")) {
-        console.log("[AVSTOCK] Error: API Call limit over.")
+      if (data.hasOwnProperty("Note")) {
+        console.log("[AVSTOCK] Error: API Call limit exceeded.")
       }
       if (data.hasOwnProperty("Error Message")) {
         console.log("[AVSTOCK] Error:", data["Error Message"])
@@ -78,17 +80,18 @@ module.exports = NodeHelper.create({
           console.log("[AVSTOCK] Data Error: There is no available data for", symbol)
         }
         //console.log("[AVSTOCK] Response is parsed - ", symbol)
+        var dec = this.config.decimals		//decimal Factor, converts decimals to numbers that needs to be multiplied for Math.round
         var result = {
           "symbol": data["Global Quote"]["01. symbol"],
-          "open": data["Global Quote"]["02. open"],
-          "high": data["Global Quote"]["03. high"],
-          "low": data["Global Quote"]["04. low"],
-          "price": data["Global Quote"]["05. price"],
-          "volume": data["Global Quote"]["06. volume"],
+          "open": parseFloat(data["Global Quote"]["02. open"]).toFixed(dec),
+          "high": parseFloat(data["Global Quote"]["03. high"]).toFixed(dec),
+          "low": parseFloat(data["Global Quote"]["04. low"]).toFixed(dec),
+          "price": parseFloat(data["Global Quote"]["05. price"]).toFixed(dec),
+          "volume": parseInt(data["Global Quote"]["06. volume"]).toLocaleString(),
           "day": data["Global Quote"]["07. latest trading day"],
-          "close": data["Global Quote"]["08. previous close"],
-          "change": data["Global Quote"]["09. change"],
-          "changeP": data["Global Quote"]["10. change percent"],
+          "close": parseFloat(data["Global Quote"]["08. previous close"]).toFixed(dec),
+          "change": parseFloat(data["Global Quote"]["09. change"]).toFixed(dec),
+          "changeP": parseFloat(data["Global Quote"]["10. change percent"]).toFixed(dec)+"%",
           "requestTime": moment().format(cfg.timeFormat),
           "hash": symbol.hashCode()
         }
