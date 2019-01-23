@@ -61,7 +61,7 @@ If you have premium account, you can adjust `poolInterval` for shorter refreshin
     poolInterval : 1000*15, // If your AV account is free, at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
     candleSticks : false //show candle sticks if mode is Series
-    coloredCandles : true //colored bars: red and green for negative and positiva candles
+    coloredCandles : false //colored bars: red and green for negative and positive candles
   }
 },
 ```
