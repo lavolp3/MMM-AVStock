@@ -24,8 +24,8 @@ Module.register("MMM-AVStock", {
     chartDays: 90,
     poolInterval : 1000*15, // at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
-    barChart: false,
-    coloredBars: true,
+    candleSticks: false,
+    coloredCandles: true,
   },
 
   getStyles: function() {
@@ -256,7 +256,7 @@ Module.register("MMM-AVStock", {
         ud = s.candle
         lastPrice = s.close
         requestTime = s.requestTime
-      } else if (!this.config.barChart) {
+      } else if (!this.config.candleSticks) {
         if (s.close > max) {
           max = s.close
         }
@@ -280,14 +280,14 @@ Module.register("MMM-AVStock", {
     var ctx = cvs.getContext("2d")
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-    ctx.beginPath()   //draw line or bar chart
+    ctx.beginPath()   //draw line or candle stick chart
     var xs = Math.round(((ctx.canvas.width)-10) / series.length)
     var x = 5
     var y = 0
     var y2 = 0
     ctx.strokeStyle = "#FFFFFF"
     ctx.lineWidth = 3
-    if (!this.config.barChart) {
+    if (!this.config.candleSticks) {
       ctx.beginPath()
       while (series.length > 0) {
         var t = series.pop()
@@ -310,7 +310,7 @@ Module.register("MMM-AVStock", {
         ctx.beginPath()  //drawing the candle from t.open to t.close
         var rectMinY = ctx.canvas.height - (((Math.min (t.close, t.open) - min) / (max - min)) * ctx.canvas.height)
         var rectMaxY = ctx.canvas.height - (((Math.max (t.close, t.open) - min) / (max - min)) * ctx.canvas.height)
-        if (this.config.coloredBars) {
+        if (this.config.coloredCandles) {
           ctx.fillStyle = ((t.close < t.open) ? "red" : "green")
         } else {
           ctx.fillStyle = ((t.close < t.open) ? "black" : "white")
