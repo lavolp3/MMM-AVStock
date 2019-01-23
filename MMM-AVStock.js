@@ -24,7 +24,7 @@ Module.register("MMM-AVStock", {
     chartDays: 90,
     poolInterval : 1000*30, // at least 13 sec is needed.
     mode : "table", // "table", "ticker", "series"
-    decimals : 3,
+    decimals : 4,
   },
 
   getStyles: function() {
