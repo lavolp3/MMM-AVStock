@@ -22,8 +22,9 @@ Module.register("MMM-AVStock", {
     alias: ["APPLE", "", "SAMSUNG Electronics"],
     tickerDuration: 60,
     chartDays: 90,
-    poolInterval : 1000*15, // at least 13 sec is needed.
+    poolInterval : 1000*15, // (Changed in ver 1.1.0) - Only For Premium Account
     mode : "table", // "table", "ticker", "series"
+    premiumAccount: false, // To change poolInterval, set this to true - Only For Premium Account
   },
 
   getStyles: function() {

@@ -20,34 +20,45 @@ module.exports = NodeHelper.create({
   start: function() {
     this.config = null
     this.pooler = []
+    this.doneFirstPooling = false
   },
 
   socketNotificationReceived: function(noti, payload) {
     if (noti == "INIT") {
       this.config = payload
       console.log("[AVSTOCK] Initialized.")
-      this.startPooling()
     }
-
     if (noti == "START") {
       this.prepareScan()
+      this.startPooling()
     }
   },
 
   startPooling: function() {
+    // Since December 2018, Alphavantage changed API quota limit.(500 per day)
+    // So, fixed interval is used. for the first cycle, 15sec is used.
+    // After first cycle, 3min is used for interval to match 500 quota limits.
+    // So, one cycle would be 3min * symbol length;
+    var interval = 0
+    if (this.config.premiumAccount) {
+      interval = this.config.poolInterval
+    } else {
+      interval = (this.doneFirstPooling) ? 180000 : 15000
+    }
+
     if (this.pooler.length > 0) {
       var symbol = this.pooler.shift()
-
       this.callAPI(this.config, symbol, (noti, payload)=>{
         this.sendSocketNotification(noti, payload)
       })
     } else {
+      this.doneFirstPooling = true
       this.prepareScan()
     }
 
     var timer = setTimeout(()=>{
       this.startPooling()
-    }, this.config.poolInterval)
+    }, interval)
   },
 
   callAPI: function(cfg, symbol, callback) {

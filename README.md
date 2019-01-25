@@ -13,6 +13,11 @@ MagicMirror module for displaying stock price with Alphavantage API
 ![ScreenShot for Series](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_series.png)
 
 
+## UPDATES ##
+** 1.1.0 **
+- Fix for Alphavantage free account API quota limit
+- Free account cannot set `poolInterval`.
+
 ## Installation
 ```shell
 cd ~/MagicMirror/modules
@@ -25,10 +30,7 @@ npm install
 https://www.alphavantage.co/
 
 Free account has a limit of quota (5 request per minute).
-
-This module uses pooling to avoid this limit. Therefore, the first loading of each stock data will take some seconds(about 15sec per each stock).
-
-If you have premium account, you can adjust `poolInterval` for shorter refreshing. 
+**Since Dec 28, 2018, 500 requests per day limit is added**
 
 
 
@@ -48,7 +50,6 @@ If you have premium account, you can adjust `poolInterval` for shorter refreshin
 ### Details and Defaults Values
 ```javascript
 {
-  //disabled:true,
   module: "MMM-AVStock",
   position: "top_right", //"bottom_bar" is better for `mode:ticker`
   config: {
@@ -58,8 +59,9 @@ If you have premium account, you can adjust `poolInterval` for shorter refreshin
     alias: ["APPLE", "", "SAMSUNG Electronics"], //Easy name of each symbol. When you use `alias`, the number of symbols and alias should be the same. If value is null or "", symbol string will be used by default.
     tickerDuration: 60, // Ticker will be cycled once per this second.
     chartDays: 90, //For `mode:series`, how much daily data will be taken. (max. 90)
-    poolInterval : 1000*15, // If your AV account is free, at least 13 sec is needed.
+    poolInterval : 1000*15, // (Changed in ver 1.1.0) - Only For Premium Account
     mode : "table", // "table", "ticker", "series"
+    premiumAccount: false, // To change poolInterval, set this to true - Only For Premium Account
   }
 },
 ```
