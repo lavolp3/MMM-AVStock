@@ -15,8 +15,9 @@ MagicMirror module for displaying stock price with Alphavantage API
 
 ## UPDATES ##
 ** 1.1.0 **
-- Fix for Alphavantage free account API quota limit
-- Free account cannot set `poolInterval`.
+- Fixed : Alphavantage has changed their API quota rule for free Account. (500 requests limit per day)
+- included decimals option and optimized loading time (by @lavolp3)
+- included candle stick charts for series graph(by @lavolp3)
 
 ## Installation
 ```shell
