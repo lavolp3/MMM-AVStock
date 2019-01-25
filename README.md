@@ -2,6 +2,9 @@
 MagicMirror module for displaying stock price with Alphavantage API
 
 
+## Urgent Issue (From Dec 28, 2018)
+Alphavantage changed its API quota for free account. I'll make a fix about it as soon as possible, but until then, there could be daily quota issue to use this module. Sorry for bothering. 
+
 ## Screenshot
 - `mode:table`
 ![ScreenShot for Table](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_table.png)
