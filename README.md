@@ -63,8 +63,8 @@ Free account has a limit of quota (5 request per minute).
     poolInterval : 1000*15, // (Changed in ver 1.1.0) - Only For Premium Account
     mode : "table", // "table", "ticker", "series"
     decimals: 4, // number o decimals for all values including decimals (prices, price changes, change%...)
-    candleSticks : false //show candle sticks if mode is Series
-    coloredCandles : false //colored bars: red and green for negative and positive candles
+    candleSticks : false, //show candle sticks if mode is Series
+    coloredCandles : false, //colored bars: red and green for negative and positive candles
     premiumAccount: false, // To change poolInterval, set this to true - Only For Premium Account
   }
 },
