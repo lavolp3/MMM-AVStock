@@ -1,5 +1,5 @@
 # MMM-AVStock
-MagicMirror module for displaying stock price with Alphavantage API
+MagicMirror module for displaying stock price with Alphavantage API.
 
 
 ## Screenshot
