@@ -79,6 +79,7 @@ module.exports = NodeHelper.create({
                 return;
             }
             data = JSON.parse(body);
+            var dec = Math.pow(10, this.config.decimals);
             //his.log("Received data: " + JSON.stringify(data));
             if (data.hasOwnProperty("Note")) {
                 console.error("[AVSTOCK] Error: API Call limit exceeded.");
@@ -89,14 +90,13 @@ module.exports = NodeHelper.create({
                     console.log("[AVSTOCK] Data Error: There is no available data for " + symbol);
                 } else {
                     this.log("[AVSTOCK] Response is parsed for " + symbol);
-                    var dec = Math.pow(10, this.config.decimals)		
                     var result = {
                         "symbol": data["Global Quote"]["01. symbol"],
                         "open": Math.round(parseFloat(data["Global Quote"]["02. open"]) * dec) / dec,
                         "high": Math.round(parseFloat(data["Global Quote"]["03. high"]) * dec) / dec,
                         "low": Math.round(parseFloat(data["Global Quote"]["04. low"]) * dec) / dec,
                         "price": Math.round(parseFloat(data["Global Quote"]["05. price"]) * dec) / dec,
-                        "volume": parseInt(data["Global Quote"]["06. volume"]).toLocaleString(),
+                        "volume": parseInt(data["Global Quote"]["06. volume"]),
                         "day": data["Global Quote"]["07. latest trading day"],
                         "close": Math.round(parseFloat(data["Global Quote"]["08. previous close"]) * dec) / dec,
                         "change": Math.round(parseFloat(data["Global Quote"]["09. change"]) * dec) / dec,
@@ -119,11 +119,11 @@ module.exports = NodeHelper.create({
                     var item = {
                         "symbol": symbol,
                         "date": index,
-                        "open": series[index]["1. open"],
-                        "high": series[index]["2. high"],
-                        "low": series[index]["3. low"],
-                        "close": series[index]["4. close"],
-                        "volume": series[index]["5. volume"],
+                        "open": Math.round(parseFloat(series[index]["1. open"]) * dec) / dec,
+                        "high": Math.round(parseFloat(series[index]["2. high"]) * dec) / dec,
+                        "low": Math.round(parseFloat(series[index]["3. low"]) * dec) / dec,
+                        "close": Math.round(parseFloat(series[index]["4. close"]) * dec) / dec,
+                        "volume": parseInt(series[index]["5. volume"]),
                         "hash" : symbol.hashCode(),
                         "requestTime": moment().format(cfg.timeFormat),
                         "candle": null

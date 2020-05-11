@@ -250,12 +250,12 @@ Module.register("MMM-AVStock", {
     var requestTime = "";
 
     //determine max, min etc. for graph size
-    for(i in series) {
+    for (var i = 0; i < series.length; i++) {
       var s = series[i];
       co[i] = s.close;
       if (i == 0) {
-        max = s.close;
-        min = s.close;
+        max = (this.config.candleSticks) ? s.high : s.close;
+        min = (this.config.candleSticks) ? s.low : s.close;
         symbol = s.symbol;
         ud = s.candle;
         lastPrice = s.close;
@@ -279,7 +279,7 @@ Module.register("MMM-AVStock", {
           changeV = Math.round((lastPrice - s.close) * 10000) / 10000;
       }
     }
-
+    this.log("Graph values: Max: "+max+", Min: "+min);
     var cvs = document.getElementById("AVSTOCK_CANVAS");
     var ctx = cvs.getContext("2d");
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -329,9 +329,9 @@ Module.register("MMM-AVStock", {
     var stock = document.getElementById("symbol_series");
     stock.innerHTML = this.getStockName(symbol);
     var price = document.getElementById("price_series");
-    price.innerHTML = lastPrice;
+    price.innerHTML = lastPrice.toFixed(this.config.decimals);
     var change = document.getElementById("change_series");
-    change.innerHTML = changeV;
+    change.innerHTML = changeV.toFixed(this.config.decimals);
 
     var tr = document.getElementById("AVSTOCK_SERIES");
     tr.className = "animated stock " + ud;
