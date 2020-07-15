@@ -116,12 +116,12 @@
 
 #AVSTOCK .up .change,
 #AVSTOCK .up .changeP {
-  color: #0f0;
+  color: #99F;
 }
 
 #AVSTOCK .down .change,
 #AVSTOCK .down .changeP {
-  color: #f00f00;
+  color: #F99;
 }
 
 #AVSTOCK .up .change::before,
