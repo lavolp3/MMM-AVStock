@@ -19,130 +19,193 @@ String.prototype.hashCode = function() {
 module.exports = NodeHelper.create({
     start: function() {
         this.config = null;
-        this.pooler = [];
-        this.doneFirstPooling = false;
+        this.initial = true;
+        this.stocks = {};
     },
+
 
     socketNotificationReceived: function(noti, payload) {
         if (noti == "INIT") {
             this.config = payload;
+            this.alpha = require('alphavantage')({ key: this.config.apiKey });
             console.log("[AVSTOCK] Initialized.");
-        } else if (noti == "START") {
-            if (this.pooler.length == 0) {
-                this.prepareScan();
+            //this.startPooling();             
+        } else if (noti == "GET_STOCKDATA") {
+              //if ( moment().isAfter(moment(this.config.inactive[0], "HH:mm")) || moment().isBefore(moment(this.config.inactive[1], "HH:mm"))) {
+              //  this.log("Inactivity time. No Api calls between "+this.config.inactive[0]+" and "+this.config.inactive[1]);
+              //} else {
+            //var inactivity = moment.duration();  //NOT FINISHED
+            var callArray = this.prepareAPICalls();
+            if (this.initial) {
+                this.initialCalls(callArray);
+            } else {
+                this.regularCalls(callArray);
             }
-            this.startPooling();
         }
     },
 
-    startPooling: function() {
-        // Since December 2018, Alphavantage changed API quota limit.(500 per day)
-        // So, fixed interval is used. for the first cycle, 15sec is used.
-        // After first cycle, 3min is used for interval to match 500 quota limits.
-        // So, one cycle would be 3min * symbol length;
-        var interval = 0;
-        if (this.config.premiumAccount) {
-            interval = this.config.poolInterval;
-        } else {
-            interval = (this.doneFirstPooling) ? 180000 : 15000;
-        };
 
-        if (this.pooler.length > 0) {
-            var symbol = this.pooler.shift();
-            this.callAPI(this.config, symbol, (noti, payload)=>{
-                this.sendSocketNotification(noti, payload);
-            })
-        } else {
-            this.doneFirstPooling = true;
-            this.prepareScan();
-        }
-
-        var timer = setTimeout(()=>{
-            this.startPooling();
-        }, interval)
+    initialCalls: function(callArray) {
+        this.log("Performing initial 15s calls...");
+        var interval = 15000;
+        var self = this;
+        this.callAPI(callArray[0]);
+        var counter = 0;
+        var ic = setInterval(() => {
+            counter = counter + 1;
+            if (counter == callArray.length) {
+                clearInterval(ic);
+                self.initial = false;
+                self.regularCalls(callArray);
+            } else {
+                self.callAPI(callArray[counter]);
+            }
+        }, interval);
     },
 
-    callAPI: function(cfg, symbol, callback) {
-        var url = "";
-        if (cfg.mode != "series") {
-            url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=";
-        } else {
-            url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=";
-        }
-        url += symbol + "&apikey=" + cfg.apiKey;
-        this.log("Calling url : " + url);
+    
+    regularCalls: function(callArray) {
+        var counter = 0;
+        this.log("Performing regular calls...");
+        var interval = Math.round((24 * 60 * 60 * 1000) / (450 - callArray.length));          //500 calls allowed in 24 hours
+        var self = this;
+        this.callAPI(callArray[0]);
+        setInterval(() => {
+            counter = (counter == callArray.length) ? 0 : counter + 1;
+            self.callAPI(callArray[counter]);
+            self.log("Counter: " + counter);
+        }, interval);
+    },
 
-        request(url, (error, response, body)=>{
-            var data = null;
-            if (error) {
-                console.error("[AVSTOCK] API Error: ", error);
-                return;
-            }
-            data = JSON.parse(body);
-            var dec = Math.pow(10, this.config.decimals);
-            //his.log("Received data: " + JSON.stringify(data));
-            if (data.hasOwnProperty("Note")) {
-                console.error("[AVSTOCK] Error: API Call limit exceeded.");
-            } else if (data.hasOwnProperty("Error Message")) {
-                console.error("[AVSTOCK] Error:", data["Error Message"]);
-            } else if (data["Global Quote"]) {
-                if (!data["Global Quote"].hasOwnProperty("01. symbol")) {
-                    console.log("[AVSTOCK] Data Error: There is no available data for " + symbol);
-                } else {
-                    this.log("[AVSTOCK] Response is parsed for " + symbol);
-                    var result = {
-                        "symbol": data["Global Quote"]["01. symbol"],
-                        "open": Math.round(parseFloat(data["Global Quote"]["02. open"]) * dec) / dec,
-                        "high": Math.round(parseFloat(data["Global Quote"]["03. high"]) * dec) / dec,
-                        "low": Math.round(parseFloat(data["Global Quote"]["04. low"]) * dec) / dec,
-                        "price": Math.round(parseFloat(data["Global Quote"]["05. price"]) * dec) / dec,
-                        "volume": parseInt(data["Global Quote"]["06. volume"]),
-                        "day": data["Global Quote"]["07. latest trading day"],
-                        "close": Math.round(parseFloat(data["Global Quote"]["08. previous close"]) * dec) / dec,
-                        "change": Math.round(parseFloat(data["Global Quote"]["09. change"]) * dec) / dec,
-                        "changeP": Math.round(parseFloat(data["Global Quote"]["10. change percent"]) * dec) / dec + "%",
-                        "requestTime": moment().format(cfg.timeFormat),
-                        "hash": symbol.hashCode()
-                    }
-                    this.log("Sending result: " + JSON.stringify(result));
-                    callback('UPDATE', result);
+
+    prepareAPICalls: function(callArray) {
+        var callArray = [];
+        var conf = this.config;
+        var symbol, func, interval, maPeriod;
+        var ma = conf.movingAverage;
+        for (var s = 0; s < conf.symbols.length; s++) {
+            func = conf.chartInterval;
+            symbol = conf.symbols[s];
+            this.stocks[symbol]= {};
+            interval = (func == "intraday") ? conf.intraDayInterval : "";
+            callArray.push({
+                symbol: symbol,
+                func: func,
+                interval: interval,
+                ma: []
+            });
+            this.stocks[symbol][func] = {};
+            if (ma.type != "") {
+                maType = ma.type;
+                this.stocks[symbol][maType] = {};
+                interval = conf.chartInterval;
+                for (m = 0; m < ma.periods.length; m++) {
+                    callArray.push({
+                        symbol: symbol,
+                        func: "technical",
+                        interval: interval,
+                        ma: [ma.type, ma.periods[m]]
+                    });
                 }
-            } else if (data["Time Series (Daily)"]) {
-                this.log("[AVSTOCK] Response is parsed for " + symbol)
-                var series = data["Time Series (Daily)"];
-                var keys = Object.keys(series);
+            }
+        }
+        this.log("API Calls prepared...")
+        this.log(callArray);
+        this.log(this.stocks);
+        return callArray;
+    },
+
+    
+    callAPI: function(callItem) {
+        var func = callItem.func;
+        var interval = callItem.interval;
+        if (["daily", "weekly", "monthly", "intraday"].includes(func)) {
+            this.log("Calling API: " + func + ", stock: " + callItem.symbol);
+            if (func == "intraday") {
+                this.alpha.data[func](callItem.symbol, "compact", "json", callItem.interval)
+                .then(data => {
+                    this.processData(data, callItem);
+                })
+                .catch(error => {
+                    console.error("[MMM-AVStock] ERROR: " + JSON.stringify(error));
+                });
+            } else {
+                this.alpha.data[func](callItem.symbol, "compact", "json")
+                .then(data => {
+                    this.processData(data, callItem);
+                })
+                .catch(error => {
+                    console.error("[MMM-AVStock] ERROR: " + JSON.stringify(error));
+                });
+            }
+        } else if (func == "technical") {
+            this.log("Calling API: " + func + ", stock: " + callItem.symbol);
+            this.alpha.technical[callItem.ma[0].toLowerCase()](callItem.symbol, callItem.interval, callItem.ma[1], "close")
+            .then(data => {
+                this.processData(data, callItem);
+            });
+        }
+    },
+    
+
+    processData: function(data, callItem) {
+        this.log("Processing API data...");
+        var cfg = this.config;
+        for (var key in data) {
+            if (key.includes("Time Series")) {
+                this.log("Time Series found...");
+                var series = data[key];
                 var dayLimit = (cfg.chartDays > 90) ? 90 : cfg.chartDays;
-                var keys = keys.sort().reverse().slice(0, dayLimit);
+                var entries = Object.keys(series).slice(0, dayLimit);
                 var ts = [];
-                for (k in keys) {
-                    var index = keys[k]
+                entries.forEach(entry => {
                     var item = {
-                        "symbol": symbol,
-                        "date": index,
-                        "open": Math.round(parseFloat(series[index]["1. open"]) * dec) / dec,
-                        "high": Math.round(parseFloat(series[index]["2. high"]) * dec) / dec,
-                        "low": Math.round(parseFloat(series[index]["3. low"]) * dec) / dec,
-                        "close": Math.round(parseFloat(series[index]["4. close"]) * dec) / dec,
-                        "volume": parseInt(series[index]["5. volume"]),
-                        "hash" : symbol.hashCode(),
+                        "symbol": callItem.symbol,
+                        "date": entry,
+                        "open": parseFloat(series[entry]["1. open"]),
+                        "high": parseFloat(series[entry]["2. high"]),
+                        "low": parseFloat(series[entry]["3. low"]),
+                        "close": parseFloat(series[entry]["4. close"]),
+                        "volume": parseInt(series[entry]["5. volume"]),
+                        "hash" : callItem.symbol.hashCode(),
                         "requestTime": moment().format(cfg.timeFormat),
                         "candle": null
                     }
                     item.candle = ((item.close - item.open) >= 0) ? "up" : "down";
                     ts.push(item);
-                }
-                this.log("Sending result: " + JSON.stringify(ts));
-                callback('UPDATE_SERIES', ts);
+                });
+                this.log("Sending Socket Notification...");
+                this.sendSocketNotification("UPDATE_STOCKS", {
+                    symbol: callItem.symbol, 
+                    func: callItem.func, 
+                    data: ts 
+                });
+            } else if (key.includes("Technical Analysis")) {
+                this.log("Technical analysis data found...");
+                var series = data[key];
+                var dayLimit = (cfg.chartDays > 90) ? 90 : cfg.chartDays;
+                var entries = Object.keys(series).slice(0, dayLimit);
+                var ts = [];
+                entries.forEach(entry => {
+                    var item = {
+                        "symbol": callItem.symbol,
+                        "date": entry,
+                        "ma": callItem.ma[0].toUpperCase(),
+                        "value": series[entry][callItem.ma[0].toUpperCase()]
+                    }
+                    ts.push(item);
+                });
+                //this.log(ts);
+                this.log("Sending Socket Notification...");
+                this.sendSocketNotification("UPDATE_TECH", {
+                    symbol: callItem.symbol, 
+                    func: callItem.ma.join(''),
+                    data: ts 
+                });
             }
-        })
-    },
-
-    prepareScan: function() {
-        for (s in this.config.symbols) {
-            var symbol = this.config.symbols[s];
-            this.pooler.push(symbol);
-        }
-    },
+        }             
+    },   
+    
       
     log: function (msg) {
         if (this.config && this.config.debug) {
