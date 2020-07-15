@@ -45,6 +45,44 @@ module.exports = NodeHelper.create({
     },
 
 
+    prepareAPICalls: function(callArray) {
+        var callArray = [];
+        var conf = this.config;
+        var symbol, func, interval, maPeriod;
+        var ma = conf.movingAverage;
+        for (var s = 0; s < conf.symbols.length; s++) {
+            func =  (conf.mode == "series") ? conf.chartInterval : "quote";
+            symbol = conf.symbols[s];
+            this.stocks[symbol]= {};
+            interval = (func == "intraday") ? conf.intraDayInterval : "";
+            callArray.push({
+                symbol: symbol,
+                func: func,
+                interval: interval,
+                ma: []
+            });
+            this.stocks[symbol][func] = {};
+            if (conf.mode == "series" && ma.type != "") {
+                maType = ma.type;
+                this.stocks[symbol][maType] = {};
+                interval = conf.chartInterval;
+                for (m = 0; m < ma.periods.length; m++) {
+                    callArray.push({
+                        symbol: symbol,
+                        func: "technical",
+                        interval: interval,
+                        ma: [ma.type, ma.periods[m]]
+                    });
+                }
+            }
+        }
+        this.log("API Calls prepared...");
+        this.log(callArray);
+        this.log(this.stocks);
+        return callArray;
+    },
+
+
     initialCalls: function(callArray) {
         this.log("Performing initial 15s calls...");
         var interval = 15000;
@@ -77,50 +115,12 @@ module.exports = NodeHelper.create({
         }, interval);
     },
 
-
-    prepareAPICalls: function(callArray) {
-        var callArray = [];
-        var conf = this.config;
-        var symbol, func, interval, maPeriod;
-        var ma = conf.movingAverage;
-        for (var s = 0; s < conf.symbols.length; s++) {
-            func = conf.chartInterval;
-            symbol = conf.symbols[s];
-            this.stocks[symbol]= {};
-            interval = (func == "intraday") ? conf.intraDayInterval : "";
-            callArray.push({
-                symbol: symbol,
-                func: func,
-                interval: interval,
-                ma: []
-            });
-            this.stocks[symbol][func] = {};
-            if (ma.type != "") {
-                maType = ma.type;
-                this.stocks[symbol][maType] = {};
-                interval = conf.chartInterval;
-                for (m = 0; m < ma.periods.length; m++) {
-                    callArray.push({
-                        symbol: symbol,
-                        func: "technical",
-                        interval: interval,
-                        ma: [ma.type, ma.periods[m]]
-                    });
-                }
-            }
-        }
-        this.log("API Calls prepared...")
-        this.log(callArray);
-        this.log(this.stocks);
-        return callArray;
-    },
-
     
     callAPI: function(callItem) {
         var func = callItem.func;
         var interval = callItem.interval;
-        if (["daily", "weekly", "monthly", "intraday"].includes(func)) {
-            this.log("Calling API: " + func + ", stock: " + callItem.symbol);
+        this.log("Calling API: " + func + ", stock: " + callItem.symbol);
+        if (["daily", "weekly", "monthly", "intraday", "quote"].includes(func)) {
             if (func == "intraday") {
                 this.alpha.data[func](callItem.symbol, "compact", "json", callItem.interval)
                 .then(data => {
@@ -139,7 +139,6 @@ module.exports = NodeHelper.create({
                 });
             }
         } else if (func == "technical") {
-            this.log("Calling API: " + func + ", stock: " + callItem.symbol);
             this.alpha.technical[callItem.ma[0].toLowerCase()](callItem.symbol, callItem.interval, callItem.ma[1], "close")
             .then(data => {
                 this.processData(data, callItem);
@@ -152,7 +151,31 @@ module.exports = NodeHelper.create({
         this.log("Processing API data...");
         var cfg = this.config;
         for (var key in data) {
-            if (key.includes("Time Series")) {
+            if (key.includes("Global Quote")) {
+                this.log("Global Quote found for " + callItem.symbol);
+                this.log(data);
+                var quote = data[key];
+                var result = {
+                    "symbol": callItem.symbol,
+                    "open": parseFloat(quote["02. open"]),
+                    "high": parseFloat(quote["03. high"]),
+                    "low": parseFloat(quote["04. low"]),
+                    "price": parseFloat(quote["05. price"]),
+                    "volume": parseInt(quote["06. volume"]),
+                    "day": quote["07. latest trading day"],
+                    "close": parseFloat(quote["08. previous close"]),
+                    "change": parseFloat(quote["09. change"]),
+                    "changeP": parseFloat(quote["10. change percent"]),
+                    "requestTime": moment().format(cfg.timeFormat),
+                    //"hash": symbol.hashCode()
+                }
+                this.log("Sending socket notification with result: " + JSON.stringify(result));
+                this.sendSocketNotification("UPDATE_STOCKS", {
+                    symbol: callItem.symbol, 
+                    func: callItem.func, 
+                    data: result 
+                });
+            } else if (key.includes("Time Series")) {
                 this.log("Time Series found...");
                 var series = data[key];
                 var dayLimit = (cfg.chartDays > 90) ? 90 : cfg.chartDays;
