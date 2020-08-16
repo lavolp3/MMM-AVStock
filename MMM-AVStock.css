@@ -3,60 +3,78 @@
 	100% { background-color:#000; }
 }
 
-@keyframes ticker {
-  0% {
-    transform: translate3d(0, 0, 0);
-    visibility: visible;
-  }
-  100% {
-    transform: translate3d(-200%, 0, 0);
-  }
-}
 
 #AVSTOCK_CANVAS {
-  width:100%;
-  height:200px;
+  width: 100%;
+  height: 250px;
   padding: 5px;
 }
 
 #AVSTOCK_SERIES .stock {
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
 }
 
 #AVSTOCK_SERIES .anchor {
-  display:flex;
-  flex-direction:row;
+  display: flex;
+  flex-direction: row;
 }
 
 #AVSTOCK_SERIES .symbol {
   font-size: 16px;
-  color:#FFF;
+  color: #FFF;
 }
+
 
 #AVSTOCK .ticker-wrap {
   width: 100%;
   overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.9);
-  padding-left: 100%;
   box-sizing: content-box;
 }
+
+
 #AVSTOCK .ticker-wrap .ticker {
-  /*white-space: nowrap;*/
+  white-space: nowrap;
   box-sizing: content-box;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-  animation-name: ticker;
-  /*animation-duration: 30s;*/
-  display:flex;
+  animation: stock-ticker linear infinite;
+  display: flex;
+  padding-left: 100%;
 }
+
+@-webkit-keyframes stock-ticker {
+  0% {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
+  }
+
+  100% {
+    -webkit-transform: translate3d(-200%, 0, 0);
+    transform: translate3d(-200%, 0, 0);
+  }
+}
+
+@keyframes stock-ticker {
+  0% {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
+  }
+
+  100% {
+    -webkit-transform: translate3d(-200%, 0, 0);
+    transform: translate3d(-200%, 0, 0);
+  }
+}
+
 #AVSTOCK .ticker-wrap .ticker__item {
   padding: 2px 10px;
-  background-color:#333;
+  background-color:#444;
+  border: 1px solid #666;
   margin: 5px;
-  min-width: 150px;
-  line-height:1.2em;
-  display:inline-block;
+  width: 200px;
+  line-height: 1.2em;
+  display: inline-block;
 }
 
 #AVSTOCK .ticker__item .item_sect {
@@ -72,6 +90,7 @@
 #AVSTOCK_TABLE {
   border-spacing: 2px;
   border-collapse: separate;
+  text-align: center;
 }
 
 
@@ -83,6 +102,10 @@
 #AVSTOCK .tagline {
   font-size: 16px;
   text-align:right;
+}
+
+#AVSTOCK .tagline.alert:before {
+  color: orange;
 }
 
 #AVSTOCK td {
@@ -126,10 +149,10 @@
 
 #AVSTOCK .up .change::before,
 #AVSTOCK .up .changeP::before {
-  content: "▲";
+  content: " ▲ ";
 }
 
 #AVSTOCK .down .change::before,
 #AVSTOCK .down .changeP::before {
-  content: "▼";
+  content: " ▼ ";
 }
