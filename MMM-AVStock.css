@@ -4,6 +4,11 @@
 }
 
 
+#AVSTOCK * {
+  font-size: 16px;
+  line-height:1.5em;
+}
+
 #AVSTOCK_CANVAS {
   width: 100%;
   height: 250px;
@@ -94,10 +99,6 @@
 }
 
 
-#AVSTOCK * {
-  font-size: 16px;
-  line-height:1.5em;
-}
 
 #AVSTOCK .tagline {
   font-size: 16px;
@@ -110,7 +111,7 @@
 
 #AVSTOCK td {
   margin:2px;
-  padding:0 5px;
+  padding:5px 5px;
   line-height:1.5em;
 }
 

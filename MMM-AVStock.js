@@ -19,7 +19,7 @@ Module.register("MMM-AVStock", {
         apiKey : "",
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
-        alias: ["APPLE", "", "TESLA"],
+        alias: ["APPLE", "GOOGLE", "TESLA"],
         locale: "en", //config.language,
         tickerDuration: 60,
         chartDays: 90,
@@ -36,6 +36,7 @@ Module.register("MMM-AVStock", {
         decimals : 4,
         activeHours: [8, 22],
         candleSticks: false,
+        chartNavigator: false,
         chartLineColor: '#eee',
         chartLabelColor: '#eee',
         coloredCandles: true,
@@ -44,11 +45,18 @@ Module.register("MMM-AVStock", {
     },
     
     getScripts: function() {
-        return [this.file("node_modules/highcharts/highstock.js")];
+        return [
+            this.file("node_modules/highcharts/highstock.js"),
+            this.file("node_modules/highcharts/modules/no-data-to-display.js")
+            //this.file("node_modules/highcharts/modules/*.js")
+        ];
     },
 
     getStyles: function() {
-        return ["MMM-AVStock.css"];
+        return [
+            "MMM-AVStock.css",
+            //this.file("node_modules/highcharts/css/highcharts.css")
+        ];
     },
 
     start: function() {
@@ -102,13 +110,7 @@ Module.register("MMM-AVStock", {
         stock.innerHTML = "";
         stock.id = "AVSTOCK_SERIES";
         stock.className = "stock";
-        var tl = document.createElement("div");
-        tl.className = "tagline";
-        tl.id = "AVSTOCK_TAGLINE";
-        tl.innerHTML = "Last updated: ";
         wrapper.appendChild(stock);
-        wrapper.appendChild(tl);
-
     },
 
     prepareTable: function() {
@@ -154,7 +156,7 @@ Module.register("MMM-AVStock", {
         var tl = document.createElement("div");
         tl.className = "tagline";
         tl.id = "AVSTOCK_TAGLINE";
-        tl.innerHTML = "Last updated: ";
+        tl.innerHTML = "Last quote: ";
         wrapper.appendChild(tl);
     },
 
@@ -271,7 +273,7 @@ Module.register("MMM-AVStock", {
         }
         tr.className = "animated stock " + ud;
         var tl = document.getElementById("AVSTOCK_TAGLINE");
-        tl.innerHTML = "Last updated: " + stock.quote.requestTime;
+        tl.innerHTML = "Last quote: " + stock.quote.requestTime;
         setTimeout(() => {
             tr.className = "stock " + ud;
         }, 1500);
@@ -283,11 +285,11 @@ Module.register("MMM-AVStock", {
         this.log("Hash: "+hash+", Symbol: "+stock.quote.symbol);
         var tr = document.getElementById("STOCK_" + hash);
         var priceTag = document.getElementById("price_" + hash);
-        priceTag.innerHTML = this.formatNumber(stock.quote.close, this.config.decimals);
+        priceTag.innerHTML = stock.quote.price;
         /*var changeTag = document.getElementById("change_" + hash);
-        changeTag.innerHTML = this.formatNumber(stock.quote.change, this.config.decimals);*/
+        changeTag.innerHTML = stock.quote.change;*/
         var changePTag = document.getElementById("changeP_" + hash);
-        changePTag.innerHTML = this.formatNumber(stock.quote.changeP, this.config.decimals) + '%';
+        changePTag.innerHTML = stock.quote.changeP;
         var ud = (stock.quote.up) ? "up" : "down";
         tr.className = "animated ticker__item stock " + ud;
         setTimeout(()=>{
@@ -298,7 +300,7 @@ Module.register("MMM-AVStock", {
     updateChart: function(stock) {
         if (stock.ohlc && stock.quote) {
             // set the allowed units for data grouping
-            /*groupingUnits = [[
+            groupingUnits = [[
                     'day', [1,2,3,4,5,6,7]
                 ], [
                     'week', [1,2,3,4,5,10,15,20]
@@ -307,20 +309,20 @@ Module.register("MMM-AVStock", {
                 ], [
                     'year',[1]
                 ]
-            ];*/s
+            ];
             
             var stockSeries = [
                 {
-                    type: 'candlestick',
+                    type: (this.config.candleSticks) ? 'candlestick' : 'line',
                     name: stock.quote.symbol,
-                    data: stock.ohlc.values,
+                    data: (this.config.candleSticks) ? stock.ohlc.values : stock.ohlc.quotes,
                     dataSorting: true,
                     sortKey: 'x',
                     lineColor: this.config.chartLineColor,
-                    yAxis: 0
-                    /*dataGrouping: {
+                    yAxis: 0,
+                    dataGrouping: {
                         units: groupingUnits
-                    }*/
+                    }
                 }, 
                 {
                     type: 'column',
@@ -328,7 +330,10 @@ Module.register("MMM-AVStock", {
                     data: stock.ohlc.volume,
                     dataSorting: true,
                     sortKey: 'x',
-                    yAxis: 1, 
+                    yAxis: 1,
+                    dataGrouping: {
+                        units: groupingUnits
+                    }                    
                 }
             ];        
             for (var func in stock) {
@@ -342,32 +347,29 @@ Module.register("MMM-AVStock", {
                             dataSorting: true,
                             sortKey: 'x',
                             lineColor: 'orange',
-                            yAxis: 0    
+                            yAxis: 0,
+                            dataGrouping: {
+                                units: groupingUnits
+                            }
                         }
                     )
                 }
             };
             this.log(stockSeries);
-
-            /*Highcharts.setOptions({
-                time: {
-                    useUTC: false,
-                    timezone: 'Europe/Brussels'
-                }
-            })*/
             
             // create the chart
             var stockChart = Highcharts.stockChart('AVSTOCK_SERIES', {
-                /*rangeSelector: {
+                rangeSelector: {
                     selected: 1,
-                    enabled: false
-                },*/
+                    enabled: false,
+                    inputEnabled: false
+                },
 
                 chart: {
                     backgroundColor: '#000',
                     plotBackgroundColor: '#000',
                     plotBorderWidth: '0',
-                    //zoomType: 'x'
+                    zoomType: 'x'
                 },
 
                 title: {
@@ -409,8 +411,6 @@ Module.register("MMM-AVStock", {
                             //text: 'OHLC'
                         },
                         alternateGridColor: '#223344',
-                        endOnTick: !this.config.candleSticks,
-                        startOnTick: !this.config.candleSticks,
                         gridLineDashStyle: 'longDash',
                         height: '72%',
                         lineColor: this.config.chartLineColor,
@@ -432,10 +432,10 @@ Module.register("MMM-AVStock", {
                         title: {
                             //text: 'Volume'
                         },
-                        top: '75%',
-                        height: '25%',
+                        top: '73%',
+                        height: '27%',
                         offset: 0,
-                        lineWidth: 2
+                        //lineWidth: 2
                     }
                 ],
                 
@@ -448,35 +448,20 @@ Module.register("MMM-AVStock", {
                                 color: this.config.chartLabelColor
                             },
                         },
-                        tickInterval: 24*3600*1000,
-                        dateTimeLabelFormats: {
-                            second: '%H:%M:%S',
-                            minute: '%H:%M',
-                            hour: '%H:%M',
-                            day: '%b. %e',
-                            week: '%b. %e',
-                            month: '%b. %y',
-                            year: '%Y'
-                        },
-                        //tickPosition: 'inside',
+                        tickPosition: 'inside',
+                        //endOnTick: !this.config.candleSticks,
+                        //startOnTick: !this.config.candleSticks
                     },
                     {
                         type: 'datetime',
-                        dateTimeLabelFormats: {
-                            second: '%H:%M:%S',
-                            minute: '%H:%M',
-                            hour: '%H:%M',
-                            day: '%b. %e',
-                            week: '%b. %e',
-                            month: '%b. %y',
-                            year: '%Y'
-                        },
                         labels: {
                             style: {
                                 fontSize: '16px',
                                 color: this.config.chartLabelColor
                             },
                         },
+                        //endOnTick: !this.config.candleSticks,
+                        //startOnTick: !this.config.candleSticks
                         units: [
                             [
                                 'millisecond', // unit name
@@ -508,7 +493,7 @@ Module.register("MMM-AVStock", {
                 
                 series: stockSeries,
 
-                annotations: [
+                /*annotations: [
                     {
                         labels: [{
                             point: 'max',
@@ -518,7 +503,7 @@ Module.register("MMM-AVStock", {
                             text: 'Min',
                         }]
                     }
-                ],
+                ],*/
                 
                 tooltip: {
                     split: true
@@ -528,7 +513,7 @@ Module.register("MMM-AVStock", {
                     enabled: false,
                 },
                 navigator: {
-                    enabled: false,
+                    enabled: this.config.chartNavigator,
                 },
                 scrollbar: {
                     enabled: false,
@@ -540,48 +525,57 @@ Module.register("MMM-AVStock", {
             });
 
             var tl = document.getElementById("AVSTOCK_TAGLINE");
-            tl.innerHTML = "Last updated: " + stock.quote.requestTime;
+            tl.innerHTML = "Last quote: " + stock.quote.date;
         } else {
             console.error("Not enough data to update chart!");
-        }  
+        }
     },
     
     getBarColors: function (stock) {
         var colors = [];
         var upColor = (this.config.coloredCandles) ? 'green' : this.config.chartLineColor;
-        var downColor = (this.config.coloredCandles) ? 'red' : 'none';
-        for (var i = 0; i < stock.ohlc.values.length; i++) {
-            colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
-        }
+        var downColor = (this.config.coloredCandles) ? 'red' : 'none';    
+        if (this.config.candleSticks) {
+            for (var i = 0; i < stock.ohlc.values.length; i++) {
+                colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
+            }
+        } else {
+            for (var i = 0; i < stock.ohlc.values.length; i++) {
+                colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
+            }
+        }        
         return colors;
     },
 
 
 
     formatQuotes: function(series) {
+        var l = series.length-1;
         return {
-            date: series[0].date,
-            price: this.formatNumber(series[0].close, this.config.decimals),
-            open: this.formatNumber(series[0].open, this.config.decimals),
-            high: this.formatNumber(series[0].high, this.config.decimals),
-            low: this.formatNumber(series[0].low, this.config.decimals),
-            close: this.formatNumber(series[1].close, this.config.decimals),
-            change: this.formatNumber(series[0].change, this.config.decimals),
-            changeP: this.formatNumber(series[0].changeP, this.config.decimals) + '%',
-            volume: this.formatNumber(series[0].volume, 0),
-            up: series[0].up,
-            hash: series[0].hash,
-            requestTime: series[0].requestTime,
-            symbol: series[0].symbol
+            date: series[l].date,
+            price: this.formatNumber(series[l].close, this.config.decimals),
+            open: this.formatNumber(series[l].open, this.config.decimals),
+            high: this.formatNumber(series[l].high, this.config.decimals),
+            low: this.formatNumber(series[l].low, this.config.decimals),
+            close: this.formatNumber(series[l-1].close, this.config.decimals),
+            change: this.formatNumber(series[l].change, this.config.decimals),
+            changeP: this.formatNumber(series[l].changeP, this.config.decimals) + '%',
+            volume: this.formatNumber(series[l].volume, 0),
+            up: series[l].up,
+            hash: series[l].hash,
+            requestTime: series[l].requestTime,
+            symbol: series[l].symbol
         } 
     },
     
-    formatOHLC: function(series) {
+    formatOHLC: function(stockSeries) {
         var ohlc = {
             values: [],
+            quotes: [],
             volume: []
         };
-        //series = series.reverse();
+        series = stockSeries.reverse();
+        this.log("Series for Chart: "+series)
         for (var i = 0; i < series.length; i++) {
             ohlc.values.push([
                 //parseInt(moment().startOf('day').add(i * 15, 'minutes').format("x")), // the date
@@ -591,6 +585,11 @@ Module.register("MMM-AVStock", {
                 parseFloat(series[i].low), // low
                 parseFloat(series[i].close) // close
             ]);
+            ohlc.quotes.push([
+                //parseInt(moment().startOf('day').add(i * 15, 'minutes').format("x")), // the date
+                parseInt(moment(series[i].date).format("x")), // the date
+                parseFloat(series[i].close) // close
+            ])
             ohlc.volume.push([
                 //parseInt(moment().startOf('day').add(i * 15, 'minutes').format("x")), // the date
                 parseInt(moment(series[i].date).format("x")), // the date
@@ -600,7 +599,9 @@ Module.register("MMM-AVStock", {
         return ohlc;
     },
     
+    
     formatNumber: function (number, digits) {
+        this.log("Formatting "+number);
         return parseFloat(number).toLocaleString(this.config.locale, {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits

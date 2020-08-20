@@ -1,5 +1,5 @@
 # MMM-AVStock
-MagicMirror module for displaying stock price with Alphavantage API.
+MagicMirror module for displaying stock price using the Alphavantage API.
 
 
 ## Screenshot
@@ -9,15 +9,13 @@ MagicMirror module for displaying stock price with Alphavantage API.
 - `mode:ticker`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_ticker.png)
 
-- `mode:series`
-![ScreenShot for Series](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_series.png)
-
 
 ## UPDATES ##
-** 1.1.0 **
-- Fixed : Alphavantage has changed their API quota rule for free Account. (500 requests limit per day)
-- included decimals option and optimized loading time (by @lavolp3)
-- included candle stick charts for series graph(by @lavolp3)
+** 2.0.0 **
+- included Highcharts npm module for charts
+- option to add chart (instead of mode: series)
+- improved API calls
+- 
 
 ## Installation
 ```shell
@@ -30,8 +28,7 @@ npm install
 ## Alphavantage Key
 https://www.alphavantage.co/
 
-Free account has a limit of quota (5 request per minute).
-**Since Dec 28, 2018, 500 requests per day limit is added**
+Free account has a limit of quota (5 request per minute, 500 requests per day).
 
 
 
@@ -44,7 +41,7 @@ Free account has a limit of quota (5 request per minute).
   position: "top_right",
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY",
-    symbols : ["aapl", "GOOGL", "005930.KS"],
+    symbols : ["aapl", "GOOGL", "TSLA"],
   }
 },
 ```
