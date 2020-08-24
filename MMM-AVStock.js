@@ -21,7 +21,7 @@ Module.register("MMM-AVStock", {
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
         locale: config.language,
-        width: '400px',
+        width: '100%',
         tickerDuration: 20,
         chartDays: 90,
         poolInterval : 1000*15,          // (Changed in ver 1.1.0) - Only For Premium Account
