@@ -20,22 +20,22 @@ Module.register("MMM-AVStock", {
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
-        locale: "en", //config.language,
-        tickerDuration: 60,
+        locale: config.language,
+        tickerDuration: 20,
         chartDays: 90,
         poolInterval : 1000*15,          // (Changed in ver 1.1.0) - Only For Premium Account
-        mode : "table",         // "table", "ticker", "series"
+        mode : "table",                  // "table", "ticker"
         showChart: true,
-        chartUpdateInterval: 10000,
+        showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         intraDayInterval: "5min",        // choose from ["1min", "5min", "15min", "30min", "60min"]
         movingAverage: {
             type: "EMA",
             periods: [200]
         },
-        decimals : 4,
+        decimals : 2,
         activeHours: [8, 22],
-        candleSticks: false,
+        chartType: 'line',
         chartNavigator: false,
         chartLineColor: '#eee',
         chartLabelColor: '#eee',
@@ -92,7 +92,7 @@ Module.register("MMM-AVStock", {
         }
         if (this.config.showChart || this.config.mode === "series") {
             this.log("Preparing chart...");
-            this.prepareChart() 
+            this.prepareChart()
         }
     },
 
@@ -105,12 +105,37 @@ Module.register("MMM-AVStock", {
 
     prepareChart: function() {
         var wrapper = document.getElementById("AVSTOCK");
-
-        var stock = document.createElement("div");
-        stock.innerHTML = "";
-        stock.id = "AVSTOCK_SERIES";
-        stock.className = "stock";
-        wrapper.appendChild(stock);
+        
+        var stockChart = document.createElement("div");
+        stockChart.innerHTML = "";
+        stockChart.id = "AVSTOCK_CHART";
+        
+        var head = document.createElement("div");
+        head.className = "head anchor";
+        head.id = "stockchart_head";
+        
+        var symbol = document.createElement("div");
+        symbol.className = "symbol item_sect";
+        symbol.innerHTML = "---";
+        symbol.style.marginRight = "10px";
+        symbol.id = "stockchart_symbol";
+            
+        var price = document.createElement("div");
+        price.className = "price";
+        price.innerHTML = "---";
+        price.id = "stockchart_price";
+            
+        var changeP = document.createElement("div");
+        changeP.className = "changeP";
+        changeP.innerHTML = "---";
+        changeP.id = "stockchart_changeP";
+        
+        head.appendChild(symbol);
+        head.appendChild(price);
+        head.appendChild(changeP);
+        
+        wrapper.appendChild(head);
+        wrapper.appendChild(stockChart);
     },
 
     prepareTable: function() {
@@ -134,7 +159,8 @@ Module.register("MMM-AVStock", {
             var stock = this.config.symbols[i];
             var hashId = stock.hashCode();
             var tr = document.createElement("tr");
-            tr.className = "stock";
+            tr.className = "stock_tr";
+            if (i % 2 != 0) tr.style.backgroundColor = '#333'
             tr.id = "STOCK_" + hashId;
             for (let j = 0 ; j < headers.length; j++) {
                 var td = document.createElement("td");
@@ -173,7 +199,7 @@ Module.register("MMM-AVStock", {
             var stock = this.config.symbols[i];
             var hashId = stock.hashCode();
             var tickerItem = document.createElement("div");
-            tickerItem.className = "ticker__item stock";
+            tickerItem.className = "stock_item stock";
             tickerItem.id = "STOCK_" + hashId;
 
             var symbol = document.createElement("div");
@@ -196,9 +222,6 @@ Module.register("MMM-AVStock", {
             changeP.innerHTML = "";
             changeP.id = "changeP_" + hashId;
 
-            var head = document.createElement("div");
-            head.className = "head item_sect";
-
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
 
@@ -208,15 +231,19 @@ Module.register("MMM-AVStock", {
                     self.updateChart(self.stocks[self.config.symbols[i]]);
                 });
             }
-            head.appendChild(symbol);
+            tickerItem.appendChild(symbol);
             anchor.appendChild(price);
             anchor.appendChild(changeP);
-            tickerItem.appendChild(head);
             tickerItem.appendChild(anchor);
             ticker.appendChild(tickerItem);
         }
         tickerWrapper.appendChild(ticker);
         wrapper.appendChild(tickerWrapper);
+        var tl = document.createElement("div");
+        tl.className = "tagline";
+        tl.id = "AVSTOCK_TAGLINE";
+        tl.innerHTML = "Last quote: ";
+        wrapper.appendChild(tl);
     },
 
 
@@ -280,9 +307,7 @@ Module.register("MMM-AVStock", {
     },
 
     updateTicker: function(stock) {
-        this.log(stock.quote);
         var hash = stock.quote.hash;
-        this.log("Hash: "+hash+", Symbol: "+stock.quote.symbol);
         var tr = document.getElementById("STOCK_" + hash);
         var priceTag = document.getElementById("price_" + hash);
         priceTag.innerHTML = stock.quote.price;
@@ -291,14 +316,28 @@ Module.register("MMM-AVStock", {
         var changePTag = document.getElementById("changeP_" + hash);
         changePTag.innerHTML = stock.quote.changeP;
         var ud = (stock.quote.up) ? "up" : "down";
-        tr.className = "animated ticker__item stock " + ud;
+        tr.className = "animated stock_item stock_tr " + ud;
+        var tl = document.getElementById("AVSTOCK_TAGLINE");
+        tl.innerHTML = "Last quote: " + stock.quote.date;
         setTimeout(()=>{
-            tr.className = "ticker__item stock " + ud;
+            tr.className = "stock_item stock " + ud;
         }, 1500);
     },
     
-    updateChart: function(stock) {
+    updateChart: function(stock) {      
+
         if (stock.ohlc && stock.quote) {
+            //update header
+            var head = document.getElementById("stockchart_head");
+            var ud = (stock.quote.up) ? "up" : "down";
+            head.classList.add(ud);
+            var symbolTag = document.getElementById("stockchart_symbol");
+            symbolTag.innerHTML = this.getStockName(stock.quote.symbol);
+            var priceTag = document.getElementById("stockchart_price");
+            priceTag.innerHTML = stock.quote.price;
+            var changePTag = document.getElementById("stockchart_changeP");
+            changePTag.innerHTML = stock.quote.changeP;
+            
             // set the allowed units for data grouping
             groupingUnits = [[
                     'day', [1,2,3,4,5,6,7]
@@ -313,29 +352,27 @@ Module.register("MMM-AVStock", {
             
             var stockSeries = [
                 {
-                    type: (this.config.candleSticks) ? 'candlestick' : 'line',
+                    type: this.config.chartType,
                     name: stock.quote.symbol,
-                    data: (this.config.candleSticks) ? stock.ohlc.values : stock.ohlc.quotes,
-                    dataSorting: true,
-                    sortKey: 'x',
+                    data: (this.config.chartType != 'line') ? stock.ohlc.values : stock.ohlc.quotes,
                     lineColor: this.config.chartLineColor,
                     yAxis: 0,
                     dataGrouping: {
                         units: groupingUnits
                     }
-                }, 
-                {
+                }
+            ];
+            if (this.config.showVolume) {
+                stockSeries.push({
                     type: 'column',
                     name: 'Volume',
                     data: stock.ohlc.volume,
-                    dataSorting: true,
-                    sortKey: 'x',
                     yAxis: 1,
                     dataGrouping: {
                         units: groupingUnits
                     }                    
-                }
-            ];        
+                });
+            };
             for (var func in stock) {
                 this.log(func);
                 if (func.includes("EMA") || func.includes("SMA")) {
@@ -344,8 +381,6 @@ Module.register("MMM-AVStock", {
                             type: 'line',
                             name: func,
                             data: stock[func],
-                            dataSorting: true,
-                            sortKey: 'x',
                             lineColor: 'orange',
                             yAxis: 0,
                             dataGrouping: {
@@ -358,7 +393,7 @@ Module.register("MMM-AVStock", {
             this.log(stockSeries);
             
             // create the chart
-            var stockChart = Highcharts.stockChart('AVSTOCK_SERIES', {
+            var stockChart = Highcharts.stockChart('AVSTOCK_CHART', {
                 rangeSelector: {
                     selected: 1,
                     enabled: false,
@@ -372,7 +407,7 @@ Module.register("MMM-AVStock", {
                     zoomType: 'x'
                 },
 
-                title: {
+                /*title: {
                     align: 'left',
                     margin: 5,
                     x: 20,
@@ -380,10 +415,15 @@ Module.register("MMM-AVStock", {
                     style: {
                         color: this.config.chartLabelColor,
                     }
-                },
+                },*/
 
                 plotOptions: {
                     candlestick: {
+                        color: (this.config.coloredCandles) ? 'red' : 'none',
+                        upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
+                    },
+                    
+                    ohlc: {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
                     },
@@ -412,7 +452,7 @@ Module.register("MMM-AVStock", {
                         },
                         alternateGridColor: '#223344',
                         gridLineDashStyle: 'longDash',
-                        height: '72%',
+                        height: (this.config.showVolume) ? '72%' : '100%',
                         lineColor: this.config.chartLineColor,
                         lineWidth: 2,
                         resize: {
@@ -432,8 +472,8 @@ Module.register("MMM-AVStock", {
                         title: {
                             //text: 'Volume'
                         },
-                        top: '73%',
-                        height: '27%',
+                        top: (this.config.showVolume) ? '73%' : '100%',
+                        height: (this.config.showVolume) ? '27%' : '0%',
                         offset: 0,
                         //lineWidth: 2
                     }
@@ -444,24 +484,13 @@ Module.register("MMM-AVStock", {
                         type: 'datetime',
                         labels: {
                             style: {
-                                fontSize: '16px',
+                                fontSize: '13px',
                                 color: this.config.chartLabelColor
                             },
                         },
                         tickPosition: 'inside',
-                        //endOnTick: !this.config.candleSticks,
-                        //startOnTick: !this.config.candleSticks
-                    },
-                    {
-                        type: 'datetime',
-                        labels: {
-                            style: {
-                                fontSize: '16px',
-                                color: this.config.chartLabelColor
-                            },
-                        },
-                        //endOnTick: !this.config.candleSticks,
-                        //startOnTick: !this.config.candleSticks
+                        endOnTick: (this.config.chartType == 'line'),
+                        startOnTick: (this.config.chartType == 'line'),
                         units: [
                             [
                                 'millisecond', // unit name
@@ -480,7 +509,45 @@ Module.register("MMM-AVStock", {
                                 [1]
                             ], [
                                 'week',
+                                [1, 2]
+                            ], [
+                                'month',
+                                [1, 3, 6]
+                            ], [
+                                'year',
+                                null
+                        ]]
+                    },
+                    {
+                        type: 'datetime',
+                        labels: {
+                            style: {
+                                fontSize: '13px',
+                                color: this.config.chartLabelColor
+                            },
+                        },
+                        tickPosition: 'none',
+                        endOnTick: (this.config.chartType == 'line'),
+                        startOnTick: (this.config.chartType == 'line'),
+                        units: [
+                            [
+                                'millisecond', // unit name
+                                [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
+                            ], [
+                                'second',
+                                [1, 2, 5, 10, 15, 30]
+                            ], [
+                                'minute',
+                                [1, 2, 5, 10, 15, 30]
+                            ], [
+                                'hour',
+                                [1, 2, 3, 4, 6, 8, 12]
+                            ], [
+                                'day',
                                 [1]
+                            ], [
+                                'week',
+                                [1, 2]
                             ], [
                                 'month',
                                 [1, 3, 6]
@@ -523,9 +590,6 @@ Module.register("MMM-AVStock", {
                     enabled: false,
                 },
             });
-
-            var tl = document.getElementById("AVSTOCK_TAGLINE");
-            tl.innerHTML = "Last quote: " + stock.quote.date;
         } else {
             console.error("Not enough data to update chart!");
         }
@@ -535,14 +599,8 @@ Module.register("MMM-AVStock", {
         var colors = [];
         var upColor = (this.config.coloredCandles) ? 'green' : this.config.chartLineColor;
         var downColor = (this.config.coloredCandles) ? 'red' : 'none';    
-        if (this.config.candleSticks) {
-            for (var i = 0; i < stock.ohlc.values.length; i++) {
-                colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
-            }
-        } else {
-            for (var i = 0; i < stock.ohlc.values.length; i++) {
-                colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
-            }
+        for (var i = 0; i < stock.ohlc.values.length; i++) {
+            colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
         }        
         return colors;
     },
