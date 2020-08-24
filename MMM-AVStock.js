@@ -15,18 +15,19 @@ var headers = ["symbol", "price", "close", "change", "changeP", "volume"];
 var headerTitles = ["Symbol", "Price", "Prev.Close", "CHG", "CHG%", "Volume"];
 
 Module.register("MMM-AVStock", {
-<<<<<<< HEAD
     defaults: {
         apiKey : "",
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
         locale: config.language,
+        width: '400px',
         tickerDuration: 20,
         chartDays: 90,
         poolInterval : 1000*15,          // (Changed in ver 1.1.0) - Only For Premium Account
         mode : "table",                  // "table", "ticker"
         showChart: true,
+        chartWidth: null,
         showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         intraDayInterval: "5min",        // choose from ["1min", "5min", "15min", "30min", "60min"]
@@ -80,6 +81,7 @@ Module.register("MMM-AVStock", {
     getDom: function() {
         var wrapper = document.createElement("div");
         wrapper.id = "AVSTOCK";
+        wrapper.style.width = this.config.width;
         return wrapper;
     },
 
@@ -267,7 +269,7 @@ Module.register("MMM-AVStock", {
                 }, self.config.chartUpdateInterval);*/
             }
         } else if (noti == "UPDATE_TECH") {
-            this.stocks[payload.symbol][payload.func] = payload.data;
+            this.stocks[payload.symbol][payload.func] = payload.data.reverse();
         }
         this.log("Stock updated!");
         this.log(JSON.stringify(this.stocks));
@@ -286,7 +288,6 @@ Module.register("MMM-AVStock", {
     },
 
     updateTable: function(stock) {
-        console.log(stock);
         var hash = stock.quote.hash;
         var tr = document.getElementById("STOCK_" + hash);
         var ud = "";
@@ -383,6 +384,7 @@ Module.register("MMM-AVStock", {
                             name: func,
                             data: stock[func],
                             lineColor: 'orange',
+                            lineWidth: 1,
                             yAxis: 0,
                             dataGrouping: {
                                 units: groupingUnits
@@ -405,7 +407,9 @@ Module.register("MMM-AVStock", {
                     backgroundColor: '#000',
                     plotBackgroundColor: '#000',
                     plotBorderWidth: '0',
-                    zoomType: 'x'
+                    zoomType: 'x',
+                    width: this.config.chartWidth,
+                    //margin:[0, Math.round((this.config.width-this.config.chartWidth)/2),0,Math.round((this.config.width-this.config.chartWidth)/2),0]
                 },
 
                 /*title: {
@@ -485,45 +489,7 @@ Module.register("MMM-AVStock", {
                         type: 'datetime',
                         labels: {
                             style: {
-                                fontSize: '13px',
-                                color: this.config.chartLabelColor
-                            },
-                        },
-                        tickPosition: 'inside',
-                        endOnTick: (this.config.chartType == 'line'),
-                        startOnTick: (this.config.chartType == 'line'),
-                        units: [
-                            [
-                                'millisecond', // unit name
-                                [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
-                            ], [
-                                'second',
-                                [1, 2, 5, 10, 15, 30]
-                            ], [
-                                'minute',
-                                [1, 2, 5, 10, 15, 30]
-                            ], [
-                                'hour',
-                                [1, 2, 3, 4, 6, 8, 12]
-                            ], [
-                                'day',
-                                [1]
-                            ], [
-                                'week',
-                                [1, 2]
-                            ], [
-                                'month',
-                                [1, 3, 6]
-                            ], [
-                                'year',
-                                null
-                        ]]
-                    },
-                    {
-                        type: 'datetime',
-                        labels: {
-                            style: {
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 color: this.config.chartLabelColor
                             },
                         },
@@ -633,11 +599,10 @@ Module.register("MMM-AVStock", {
             quotes: [],
             volume: []
         };
-        series = stockSeries.reverse();
+        var series = stockSeries.reverse();
         this.log("Series for Chart: "+series)
         for (var i = 0; i < series.length; i++) {
             ohlc.values.push([
-                //parseInt(moment().startOf('day').add(i * 15, 'minutes').format("x")), // the date
                 parseInt(moment(series[i].date).format("x")), // the date
                 parseFloat(series[i].open), // open
                 parseFloat(series[i].high), // high
@@ -645,12 +610,10 @@ Module.register("MMM-AVStock", {
                 parseFloat(series[i].close) // close
             ]);
             ohlc.quotes.push([
-                //parseInt(moment().startOf('day').add(i * 15, 'minutes').format("x")), // the date
                 parseInt(moment(series[i].date).format("x")), // the date
                 parseFloat(series[i].close) // close
             ])
             ohlc.volume.push([
-                //parseInt(moment().startOf('day').add(i * 15, 'minutes').format("x")), // the date
                 parseInt(moment(series[i].date).format("x")), // the date
                 parseInt(series[i].volume) // the volume
             ]);
@@ -658,9 +621,21 @@ Module.register("MMM-AVStock", {
         return ohlc;
     },
     
+    /*formatTech: function(techSeries) {
+        var values = [];
+        var series = techSeries.reverse();
+        this.log("Series for Chart: "+series)
+        for (var i = 0; i < series.length; i++) {
+            values.push([
+                parseInt(moment(series[i].date).format("x")), // the date
+                parseFloat(series[i].close) // close
+            ]);
+        }
+        return values;
+    },*/
+    
     
     formatNumber: function (number, digits) {
-        this.log("Formatting "+number);
         return parseFloat(number).toLocaleString(this.config.locale, {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits

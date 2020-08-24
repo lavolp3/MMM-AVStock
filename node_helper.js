@@ -223,12 +223,6 @@ module.exports = NodeHelper.create({
                         parseInt(moment(entry).format('x')), 
                         parseFloat(series[entry][callItem.ma[0].toUpperCase()])
                     ];
-                    /*{
-                        "symbol": callItem.symbol,
-                        "date": entry,
-                        "ma": callItem.ma[0].toUpperCase(),
-                        "value": series[entry][callItem.ma[0].toUpperCase()]
-                    }*/
                     techSeries.push(item);
                 });
                 //this.log(techSeries);

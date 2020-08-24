@@ -62,6 +62,7 @@ I am working on an alternative API.
     config: {
         apiKey : "",
         timeFormat: "DD-MM HH:mm",
+        width: '100%',
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
         locale: config.language,
@@ -69,6 +70,7 @@ I am working on an alternative API.
         chartDays: 90,
         mode : "table",                  // "table" or "ticker"
         showChart: true,
+        chartWidth: null,
         showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         movingAverage: {
@@ -91,14 +93,16 @@ I am working on an alternative API.
 | **Option** | **Type** | **Default** | **Description** |
 | --- | --- | --- | --- |
 | `api_key` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
+| `width` | string | '100%' | Width of the module |
 | `timeFormat` | string | 'DD-MM HH:mm' | Format of dates to be shown. Use moment.js format style here |
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
 | `alias` | array | ["APPLE", "GOOGLE", "TESLA"] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
-| `mode` | string | 'table' | Use table for table mode or ticker for ticker mode. |
+| `mode` | string | 'table' | Use 'table' for table mode or 'ticker' for ticker mode. |
 | `showChart` | boolean | true | Whether to show the chart. |
+| `chartWidth` | integer | null | Determines width of chart |
 | `chartInterval` | string | 'daily' | Chart interval. Currently only daily supported! |
 | `showVolume` | boolean | true | Show volume bars in the chart. |
 | `movingAverage` | object | `{ type: "SMA", periods: [200]}`  | movingAverages to include in the graph. Use `EMA` or `SMA` type and an array of all moving averages you want to see. Consider that every MA uses an own API call. |
