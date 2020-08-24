@@ -13,7 +13,7 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 ## UPDATES ##
 ** 2.0.0 **
 - included Highcharts npm module for charts
-- option to add chart (instead of mode: series)
+- option to add chart (`mode: series` still available)
 - improved API calls
 - technicals (EMA or SMA)
 - touch functions (choose stock chart, zoom in chart)
@@ -48,7 +48,7 @@ I am working on an alternative API.
   position: "top_left",
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY",
-    symbols : ["aapl", "GOOGL", "TSLA"],
+    symbols : ["AAPL", "GOOGL", "TSLA"],
   }
 },
 ```
@@ -72,7 +72,7 @@ I am working on an alternative API.
         showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         movingAverage: {
-            type: 'EMA',
+            type: 'SMA',
             periods: [200]
         },
         decimals : 2,
@@ -101,7 +101,7 @@ I am working on an alternative API.
 | `showChart` | boolean | true | Whether to show the chart. |
 | `chartInterval` | string | 'daily' | Chart interval. Currently only daily supported! |
 | `showVolume` | boolean | true | Show volume bars in the chart. |
-| `movingAverage` | object | `{ type: "EMA", periods: [200]}`  | movingAverages to include in the graph. Use `EMA` or `SMA` type and an array of all moving averages you want to see. Consider that every MA uses an own API call. |
+| `movingAverage` | object | `{ type: "SMA", periods: [200]}`  | movingAverages to include in the graph. Use `EMA` or `SMA` type and an array of all moving averages you want to see. Consider that every MA uses an own API call. |
 | `decimals` | integer |  | Number of decimals. |
 | `chartType` | string | `line` | Use `line`, `candlestick`, or `ohlc` |
 | `chartLineColor` | string | `#eee` | Color of line chart |
@@ -112,5 +112,5 @@ I am working on an alternative API.
 
 ## ToDo
 
-[ ] Use another API
+[ ] Use another API!
 [ ] Grid view

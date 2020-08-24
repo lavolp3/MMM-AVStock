@@ -30,7 +30,7 @@ Module.register("MMM-AVStock", {
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         intraDayInterval: "5min",        // choose from ["1min", "5min", "15min", "30min", "60min"]
         movingAverage: {
-            type: "EMA",
+            type: "SMA",
             periods: [200]
         },
         decimals : 2,
