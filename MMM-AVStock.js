@@ -15,6 +15,7 @@ var headers = ["symbol", "price", "close", "change", "changeP", "volume"];
 var headerTitles = ["Symbol", "Price", "Prev.Close", "CHG", "CHG%", "Volume"];
 
 Module.register("MMM-AVStock", {
+<<<<<<< HEAD
     defaults: {
         apiKey : "",
         timeFormat: "DD-MM HH:mm",
