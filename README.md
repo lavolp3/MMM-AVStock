@@ -1,71 +1,120 @@
 # MMM-AVStock
-MagicMirror module for displaying stock price with Alphavantage API.
+MagicMirror module for displaying stock price using the Alphavantage API.
 
 
 ## Screenshot
 - `mode:table`
-![ScreenShot for Table](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_table.png)
+![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock_table.png)
 
 - `mode:ticker`
-![ScreenShot for Ticker](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_ticker.png)
-
-- `mode:series`
-![ScreenShot for Series](https://raw.githubusercontent.com/eouia/MMM-AVStock/master/sc_series.png)
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock_ticker.png)
 
 
 ## UPDATES ##
-** 1.1.0 **
-- Fixed : Alphavantage has changed their API quota rule for free Account. (500 requests limit per day)
-- included decimals option and optimized loading time (by @lavolp3)
-- included candle stick charts for series graph(by @lavolp3)
+** 2.0.0 **
+- included Highcharts npm module for charts
+- option to add chart (`mode: series` still available)
+- improved API calls
+- technicals (EMA or SMA)
+- touch functions (choose stock chart, zoom in chart)
 
 ## Installation
 ```shell
 cd ~/MagicMirror/modules
-git clone https://github.com/eouia/MMM-AVStock
+git clone https://github.com/lavolp3/MMM-AVStock
 cd MMM-AVStock
 npm install
 ```
 
 ## Alphavantage Key
+Get your free API key here:
 https://www.alphavantage.co/
 
-Free account has a limit of quota (5 request per minute).
-**Since Dec 28, 2018, 500 requests per day limit is added**
+Free account has a limit of quota (5 request per minute, 500 requests per day).  
+Over the time Alphavantahge has shown to be unreliable, since more and more stocks and function got excluded.  
+Currently several users (including me) only get stock data for the previous day.   
+I am working on an alternative API.  
 
 
 
 ## Configuration
+
 ### Simple
+
 ```javascript
 {
   //disabled:true,
   module: "MMM-AVStock",
-  position: "top_right",
+  position: "top_left",
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY",
-    symbols : ["aapl", "GOOGL", "005930.KS"],
+    symbols : ["AAPL", "GOOGL", "TSLA"],
   }
 },
 ```
-### Details and Defaults Values
+
+### Detailed
+
 ```javascript
 {
-  module: "MMM-AVStock",
-  position: "top_right", //"bottom_bar" is better for `mode:ticker`
-  config: {
-    apiKey : "YOUR_ALPHAVANTAGE_KEY", // https://www.alphavantage.co/
-    timeFormat: "YYYY-MM-DD HH:mm:ss",
-    symbols : ["aapl", "GOOGL", "005930.KS"],
-    alias: ["APPLE", "", "SAMSUNG Electronics"], //Easy name of each symbol. When you use `alias`, the number of symbols and alias should be the same. If value is null or "", symbol string will be used by default.
-    tickerDuration: 60, // Ticker will be cycled once per this second.
-    chartDays: 90, //For `mode:series`, how much daily data will be taken. (max. 90)
-    poolInterval : 1000*15, // (Changed in ver 1.1.0) - Only For Premium Account
-    mode : "table", // "table", "ticker", "series"
-    decimals: 4, // number o decimals for all values including decimals (prices, price changes, change%...)
-    candleSticks : false, //show candle sticks if mode is Series
-    coloredCandles : false, //colored bars: red and green for negative and positive candles
-    premiumAccount: false, // To change poolInterval, set this to true - Only For Premium Account
-  }
+    module: "MMM-AVStock",
+    position: "top_right", //"bottom_bar" is better for `mode:ticker`
+    config: {
+        apiKey : "",
+        timeFormat: "DD-MM HH:mm",
+        width: '100%',
+        symbols : ["AAPL", "GOOGL", "TSLA"],
+        alias: ["APPLE", "GOOGLE", "TESLA"],
+        locale: config.language,
+        tickerDuration: 20,
+        chartDays: 90,
+        mode : "table",                  // "table" or "ticker"
+        showChart: true,
+        chartWidth: null,
+        showVolume: true,
+        chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
+        movingAverage: {
+            type: 'SMA',
+            periods: [200]
+        },
+        decimals : 2,
+        chartType: 'line',                // 'line', 'candlestick', or 'ohlc'
+        chartLineColor: '#eee',
+        chartLabelColor: '#eee',
+        coloredCandles: true,
+        debug: false
+    }
 },
 ```
+
+
+## Configuration Options
+
+| **Option** | **Type** | **Default** | **Description** |
+| --- | --- | --- | --- |
+| `api_key` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
+| `width` | string | '100%' | Width of the module |
+| `timeFormat` | string | 'DD-MM HH:mm' | Format of dates to be shown. Use moment.js format style here |
+| `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
+| `alias` | array | ["APPLE", "GOOGLE", "TESLA"] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol. |
+| `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
+| `tickerDuration` | integer | 20 | Determines ticker speed |
+| `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
+| `mode` | string | 'table' | Use 'table' for table mode or 'ticker' for ticker mode. |
+| `showChart` | boolean | true | Whether to show the chart. |
+| `chartWidth` | integer | null | Determines width of chart |
+| `chartInterval` | string | 'daily' | Chart interval. Currently only daily supported! |
+| `showVolume` | boolean | true | Show volume bars in the chart. |
+| `movingAverage` | object | `{ type: "SMA", periods: [200]}`  | movingAverages to include in the graph. Use `EMA` or `SMA` type and an array of all moving averages you want to see. Consider that every MA uses an own API call. |
+| `decimals` | integer |  | Number of decimals. |
+| `chartType` | string | `line` | Use `line`, `candlestick`, or `ohlc` |
+| `chartLineColor` | string | `#eee` | Color of line chart |
+| `chartLabelColor` | string | `#eee` | Color of chart labels |
+| `coloredCandles` | boolean | true | Whether to use colored candles or OHLC bars. |
+| `debug` | false | Debug mode: additional output on server side (console) and client side (browser) |
+
+
+## ToDo
+
+[ ] Use another API!
+[ ] Grid view
