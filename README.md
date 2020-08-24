@@ -3,11 +3,11 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 
 ## Screenshot
-- `mode:table`
-![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock_table.png)
+- `mode:table`  
+![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-table.PNG)
 
-- `mode:ticker`
-![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock_ticker.png)
+- `mode:ticker`  
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
 
 
 ## UPDATES ##
