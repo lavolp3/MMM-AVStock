@@ -18,6 +18,9 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - technicals (EMA or SMA)
 - touch functions (choose stock chart, zoom in chart)
 
+** Extension spitzlbergerj ***
+- Within the ticker mode, a line with the own purchase price and the display for profit and loss is added
+
 ## Installation
 ```shell
 cd ~/MagicMirror/modules
@@ -86,6 +89,25 @@ I am working on an alternative API.
     }
 },
 ```
+### mode ticker with own purchase price
+
+```javascript
+{
+    module: "MMM-AVStock",
+    position: "bottom_bar",
+    config: {
+        apiKey : "",{
+        mode : "ticker",
+        symbols : ["TL0.F","AMZN","MSFT"],
+        alias: ["Tesla","Amazon","Microsoft"],
+        purchasePrice: [88.69, 2680.00, 131.05],
+        decimals: 0,
+        tickerDuration: 20,
+        showChart: false,
+        showVolume: false,
+    }
+},
+```
 
 
 ## Configuration Options
@@ -97,6 +119,8 @@ I am working on an alternative API.
 | `timeFormat` | string | 'DD-MM HH:mm' | Format of dates to be shown. Use moment.js format style here |
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
 | `alias` | array | ["APPLE", "GOOGLE", "TESLA"] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol. |
+| `purchasePrice` | array | [123.45, 123.45, 123.45] | Array of own purchase prices |
+| `showPurchasePrices` | boolean | false | Whether to show the own purchaseprices. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
