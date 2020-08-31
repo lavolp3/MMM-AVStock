@@ -9,6 +9,9 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - `mode:ticker`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
 
+- `mode:ticker with own purchase prices`  
+![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
+
 
 ## UPDATES ##
 ** 2.0.0 **
@@ -89,7 +92,7 @@ I am working on an alternative API.
     }
 },
 ```
-### mode ticker with own purchase price
+### mode ticker with own purchase prices
 
 ```javascript
 {
@@ -100,7 +103,7 @@ I am working on an alternative API.
         mode : "ticker",
         symbols : ["TL0.F","AMZN","MSFT"],
         alias: ["Tesla","Amazon","Microsoft"],
-        purchasePrice: [88.69, 2680.00, 131.05],
+        purchasePrice: [123.45, 1234.56, 12.34],
         decimals: 0,
         tickerDuration: 20,
         showChart: false,
