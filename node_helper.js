@@ -35,6 +35,7 @@ module.exports = NodeHelper.create({
               //  this.log("Inactivity time. No Api calls between "+this.config.inactive[0]+" and "+this.config.inactive[1]);
               //} else {
             //var inactivity = moment.duration();  //NOT FINISHED
+            this.config = payload;
             var callArray = this.prepareAPICalls();
             if (!this.isRunning) {
                 this.initialCalls(callArray);

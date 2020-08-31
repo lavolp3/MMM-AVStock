@@ -49,6 +49,7 @@ I am working on an alternative API.
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY",
     symbols : ["AAPL", "GOOGL", "TSLA"],
+    alias: ["APPLE", "GOOGLE", "TESLA"],
   }
 },
 ```

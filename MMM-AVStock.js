@@ -21,7 +21,9 @@ Module.register("MMM-AVStock", {
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
         locale: config.language,
-        width: '400px',
+        width: '100%',
+        height: '400px',
+        classes: 'xsmall',
         tickerDuration: 20,
         chartDays: 90,
         poolInterval : 1000*15,          // (Changed in ver 1.1.0) - Only For Premium Account
@@ -73,7 +75,7 @@ Module.register("MMM-AVStock", {
 
     notificationReceived: function(noti, payload) {
         if (noti == "DOM_OBJECTS_CREATED") {
-            this.sendSocketNotification("GET_STOCKDATA");
+            this.sendSocketNotification("GET_STOCKDATA", this.config);
             this.prepare();
         }
     },
@@ -81,7 +83,9 @@ Module.register("MMM-AVStock", {
     getDom: function() {
         var wrapper = document.createElement("div");
         wrapper.id = "AVSTOCK";
+        wrapper.className = this.config.classes;
         wrapper.style.width = this.config.width;
+        wrapper.style.height = this.config.height;
         return wrapper;
     },
 
@@ -92,6 +96,9 @@ Module.register("MMM-AVStock", {
         } else if (this.config.mode == "ticker") {
             this.log("Preparing ticker...");
             this.prepareTicker()
+        } else if (this.config.mode == "grid") {
+            this.log("Preparing grid...");
+            this.prepareGrid()
         }
         if (this.config.showChart || this.config.mode === "series") {
             this.log("Preparing chart...");
@@ -108,6 +115,9 @@ Module.register("MMM-AVStock", {
 
     prepareChart: function() {
         var wrapper = document.getElementById("AVSTOCK");
+        
+        var chartWrapper = document.createElement("div");
+        chartWrapper.innerHTML = "";
         
         var stockChart = document.createElement("div");
         stockChart.innerHTML = "";
@@ -137,14 +147,19 @@ Module.register("MMM-AVStock", {
         head.appendChild(price);
         head.appendChild(changeP);
         
-        wrapper.appendChild(head);
-        wrapper.appendChild(stockChart);
+        chartWrapper.appendChild(head);
+        chartWrapper.appendChild(stockChart);
+        wrapper.appendChild(chartWrapper);
     },
 
     prepareTable: function() {
+        
+        
         var wrapper = document.getElementById("AVSTOCK");
         wrapper.innerHTML = "";
 
+        var tableWrapper = document.createElement("div");
+        
         var tbl = document.createElement("table");
         tbl.id = "AVSTOCK_TABLE";
         var thead = document.createElement("thead");
@@ -181,7 +196,70 @@ Module.register("MMM-AVStock", {
             }
             tbl.appendChild(tr);
         }
-        wrapper.appendChild(tbl);
+        tableWrapper.appendChild(tbl);
+        var tl = document.createElement("div");
+        tl.className = "tagline";
+        tl.id = "AVSTOCK_TAGLINE";
+        tl.innerHTML = "Last quote: ";
+        tableWrapper.appendChild(tl);
+        wrapper.appendChild(tableWrapper);
+    },
+
+    prepareGrid: function() {
+        var wrapper = document.getElementById("AVSTOCK");
+        wrapper.innerHTML = "";
+        var gridWrapper = document.createElement("div");
+        gridWrapper.className = "grid-wrap";
+        var self = this;
+        for (let i = 0; i < this.config.symbols.length; i++) {
+            var stock = this.config.symbols[i];
+            var hashId = stock.hashCode();
+            var gridItem = document.createElement("div");
+            gridItem.className = "stock_item stock";
+            gridItem.id = "grid_STOCK_" + hashId;
+
+            var symbol = document.createElement("div");
+            symbol.className = "symbol item_sect";
+            symbol.innerHTML = this.getStockName(stock);
+            symbol.id = "grid_symbol_" + hashId;
+
+            var price = document.createElement("div");
+            price.className = "price";
+            price.innerHTML = "---";
+            price.id = "grid_price_" + hashId;
+
+            var change = document.createElement("div");
+            change.className = "change";
+            change.innerHTML = "---";
+            change.id = "grid_change_" + hashId;
+
+            var vol = document.createElement("div");
+            vol.className = "volume";
+            vol.innerHTML = "---";
+            vol.id = "grid_volume_" + hashId;
+            
+            /*var changeP = document.createElement("div");
+            changeP.className = "changeP";
+            changeP.innerHTML = "---";
+            changeP.id = "grid_changeP_" + hashId;*/
+
+            var anchor = document.createElement("div");
+            anchor.className = "anchor item_sect";
+
+            if (this.config.showChart) {
+                gridItem.addEventListener("click", function() {
+                    self.log("Clicked on " + self.config.symbols[i]);
+                    self.updateChart(self.stocks[self.config.symbols[i]]);
+                });
+            }
+            gridItem.appendChild(symbol);
+            gridItem.appendChild(price);
+            anchor.appendChild(change);
+            anchor.appendChild(vol);
+            gridItem.appendChild(anchor);
+            gridWrapper.appendChild(gridItem);
+        }
+        wrapper.appendChild(gridWrapper);
         var tl = document.createElement("div");
         tl.className = "tagline";
         tl.id = "AVSTOCK_TAGLINE";
@@ -280,8 +358,9 @@ Module.register("MMM-AVStock", {
             this.updateTable(this.stocks[stock]);
         } else if (this.config.mode === "ticker"){
             this.updateTicker(this.stocks[stock]);
+        } else if (this.config.mode === "grid"){
+            this.updateGrid(this.stocks[stock]);
         }
-        
         if (this.config.showChart) { 
             this.updateChart(this.stocks[stock]);
         }
@@ -305,6 +384,24 @@ Module.register("MMM-AVStock", {
         tl.innerHTML = "Last quote: " + stock.quote.requestTime;
         setTimeout(() => {
             tr.className = "stock " + ud;
+        }, 1500);
+    },
+    
+    updateGrid: function(stock) {
+        var hash = stock.quote.hash;
+        var gridItem = document.getElementById("grid_STOCK_" + hash);
+        var priceTag = document.getElementById("grid_price_" + hash);
+        priceTag.innerHTML = stock.quote.price;
+        var changeTag = document.getElementById("grid_change_" + hash);
+        changeTag.innerHTML = stock.quote.changeP;
+        var vol = document.getElementById("grid_volume_" + hash);
+        vol.innerHTML = this.formatVolume(stock.ohlc.volume[stock.ohlc.volume.length-1][1]);
+        var ud = (stock.quote.up) ? "up" : "down";
+        gridItem.className = "animated stock_item stock_tr " + ud;
+        var tl = document.getElementById("AVSTOCK_TAGLINE");
+        tl.innerHTML = "Last quote: " + stock.quote.date;
+        setTimeout(()=>{
+            gridItem.className = "stock_item stock " + ud;
         }, 1500);
     },
 
@@ -489,7 +586,7 @@ Module.register("MMM-AVStock", {
                         type: 'datetime',
                         labels: {
                             style: {
-                                fontSize: '12px',
+                                //fontSize: '12px',
                                 color: this.config.chartLabelColor
                             },
                         },
@@ -572,8 +669,6 @@ Module.register("MMM-AVStock", {
         return colors;
     },
 
-
-
     formatQuotes: function(series) {
         var l = series.length-1;
         return {
@@ -636,10 +731,22 @@ Module.register("MMM-AVStock", {
     
     
     formatNumber: function (number, digits) {
-        return parseFloat(number).toLocaleString(this.config.locale, {
+        return parseFloat(Math.abs(number)).toLocaleString(this.config.locale, {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits
         });
+    },
+    
+    formatVolume: function(volume) {
+        if (volume > 700000) {
+            return this.formatNumber(volume/1000000, 1) + "M"
+        } else if (volume > 700) {
+            return this.formatNumber(volume/1000, 1) + "K"
+        } else if (volume == 0) {
+            return ""
+        } else {
+            return volume
+        }
     },
 
 
