@@ -20,6 +20,9 @@ Module.register("MMM-AVStock", {
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
+        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+        purchasePrice: [0,0,0],
+        /* spitzlbergerj - end */
         locale: config.language,
         width: '100%',
         tickerDuration: 20,
@@ -200,6 +203,9 @@ Module.register("MMM-AVStock", {
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
+            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            var pPrice = this.config.purchasePrice[i];
+            /* spitzlbergerj - end */
             var hashId = stock.hashCode();
             var tickerItem = document.createElement("div");
             tickerItem.className = "stock_item stock";
@@ -228,6 +234,13 @@ Module.register("MMM-AVStock", {
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
 
+            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            var purchasePrice = document.createElement("div");
+            purchasePrice.className = "purchasePrice";
+            purchasePrice.innerHTML = this.formatNumber(pPrice, this.config.decimals),
+            purchasePrice.id = "purchasePrice_" + hashId;
+            /* spitzlbergerj - end */
+
             if (this.config.showChart) {
                 tickerItem.addEventListener("click", function() {
                     self.log("Clicked on " + self.config.symbols[i]);
@@ -238,6 +251,9 @@ Module.register("MMM-AVStock", {
             anchor.appendChild(price);
             anchor.appendChild(changeP);
             tickerItem.appendChild(anchor);
+            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            tickerItem.appendChild(purchasePrice);
+            /* spitzlbergerj - end */
             ticker.appendChild(tickerItem);
         }
         tickerWrapper.appendChild(ticker);
