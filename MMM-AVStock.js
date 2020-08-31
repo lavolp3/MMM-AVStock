@@ -22,6 +22,7 @@ Module.register("MMM-AVStock", {
         alias: ["APPLE", "GOOGLE", "TESLA"],
         /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
         purchasePrice: [0,0,0],
+        showPurchasePrices: false,
         /* spitzlbergerj - end */
         locale: config.language,
         width: '100%',
@@ -252,7 +253,9 @@ Module.register("MMM-AVStock", {
             anchor.appendChild(changeP);
             tickerItem.appendChild(anchor);
             /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
-            tickerItem.appendChild(purchasePrice);
+            if (this.config.showPurchasePrices) {
+                tickerItem.appendChild(purchasePrice);
+            }
             /* spitzlbergerj - end */
             ticker.appendChild(tickerItem);
         }
