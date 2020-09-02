@@ -4,13 +4,24 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 ## Screenshot
 - `mode:table`
-![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock_table.png)
+![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-table.PNG)
 
 - `mode:ticker`
-![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock_ticker.png)
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
+
+- `mode:grid` with `direction:'row'` 
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-grid.PNG)
 
 
 ## UPDATES ##
+
+** 2.1.0 **
+- grid layout
+- direction option to show chart besides other module
+- improved styling
+- fixed alias issue
+
+
 ** 2.0.0 **
 - included Highcharts npm module for charts
 - option to add chart (`mode: series` still available)
