@@ -5,7 +5,6 @@
 
 #AVSTOCK {
   display: flex;
-  flex-direction: column;
   flex-wrap: wrap;
   justify-content: space-around;
   align-items: stretch;
@@ -56,22 +55,23 @@
 /***** GRID *****/
 
 #AVSTOCK .grid-wrap {
-  width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;  
-  flex-flow: row-wrap;
+  min-width: 400px;
   justify-content: space-around;
   align-content: flex-start;
+  text-align: left;
 }
 
 #AVSTOCK .grid-wrap .stock_item {
-  width: 100px;
-  padding: 2px 6px;
+  width: 115px;
+  padding: 2px 2px 2px 4px;
 }
 
 #AVSTOCK .grid-wrap .anchor {
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 /***** TICKER *****/
