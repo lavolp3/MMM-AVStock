@@ -23,6 +23,7 @@ Module.register("MMM-AVStock", {
         /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
         purchasePrice: [0,0,0],
         showPurchasePrices: false,
+        showPerformance2Purchase: false,
         /* spitzlbergerj - end */
         locale: config.language,
         width: '100%',
@@ -236,10 +237,18 @@ Module.register("MMM-AVStock", {
             anchor.className = "anchor item_sect";
 
             /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            var purchase = document.createElement("div");
+            purchase.className = "purchase item_sect";
+
             var purchasePrice = document.createElement("div");
             purchasePrice.className = "purchasePrice";
             purchasePrice.innerHTML = this.formatNumber(pPrice, this.config.decimals),
             purchasePrice.id = "purchasePrice_" + hashId;
+
+            var purchaseChange = document.createElement("div");
+            purchaseChange.className = "purchaseChange";
+            purchaseChange.innerHTML = this.formatNumber(100, 0) + "%";
+            purchaseChange.id = "purchaseChange_" + hashId;            
             /* spitzlbergerj - end */
 
             if (this.config.showChart) {
@@ -254,7 +263,11 @@ Module.register("MMM-AVStock", {
             tickerItem.appendChild(anchor);
             /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
             if (this.config.showPurchasePrices) {
-                tickerItem.appendChild(purchasePrice);
+                purchase.appendChild(purchasePrice);
+                if (this.config.showPerformance2Purchase) {
+                    purchase.appendChild(purchaseChange);
+                }
+                tickerItem.appendChild(purchase);
             }
             /* spitzlbergerj - end */
             ticker.appendChild(tickerItem);
@@ -338,6 +351,23 @@ Module.register("MMM-AVStock", {
         changePTag.innerHTML = stock.quote.changeP;
         var ud = (stock.quote.up) ? "up" : "down";
         tr.className = "animated stock_item stock_tr " + ud;
+        
+        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+        var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
+        if (this.config.showPerformance2Purchase) {
+            var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
+        }
+        var floatStockPrice = parseFloat(stock.quote.price);
+        var floatPurchacePrise = parseFloat(purchasePriceTag.innerHTML);
+        var performace2Purchase = floatStockPrice / floatPurchacePrise * 100;
+        var ppd = (floatStockPrice > floatPurchacePrise) ? "profit" : "loss";
+        purchasePriceTag.className = "purchasePrice " + ppd;
+        if (this.config.showPerformance2Purchase) {
+            purchaseChangeTag.innerHTML = this.formatNumber(performace2Purchase, 0) + "%";
+            purchaseChangeTag.className = "purchaseChange " + ppd;
+        }
+        /* spitzlbergerj - end */
+
         var tl = document.getElementById("AVSTOCK_TAGLINE");
         tl.innerHTML = "Last quote: " + stock.quote.date;
         setTimeout(()=>{
