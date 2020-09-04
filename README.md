@@ -9,23 +9,33 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - `mode:ticker`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
 
+- `mode:grid` with `direction:'row'` 
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-grid.PNG)
+
 - `mode:ticker with own purchase prices`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
 
 - `mode:ticker with own purchase prices and total performance compared to the purchase price`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
 
-
 ## UPDATES ##
+
+** Extension spitzlbergerj ***
+- Within the ticker mode, a line with the own purchase price and the display for profit and loss is added
+
+** 2.1.0 **
+- grid layout
+- direction option to show chart besides other module
+- improved styling
+- fixed alias issue
+
+
 ** 2.0.0 **
 - included Highcharts npm module for charts
 - option to add chart (`mode: series` still available)
 - improved API calls
 - technicals (EMA or SMA)
 - touch functions (choose stock chart, zoom in chart)
-
-** Extension spitzlbergerj ***
-- Within the ticker mode, a line with the own purchase price and the display for profit and loss is added
 
 ## Installation
 ```shell
@@ -58,6 +68,7 @@ I am working on an alternative API.
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY",
     symbols : ["AAPL", "GOOGL", "TSLA"],
+    alias: ["APPLE", "GOOGLE", "TESLA"],
   }
 },
 ```
@@ -123,19 +134,21 @@ I am working on an alternative API.
 | **Option** | **Type** | **Default** | **Description** |
 | --- | --- | --- | --- |
 | `api_key` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
-| `width` | string | '100%' | Width of the module |
+| `mode` | string | 'table' | Use 'table' for table mode, 'ticker' for ticker mode, or 'grid' for a grid mode. |
+| `width` | integer | 400 | Width of every module element. Sets the distinctive width of table, ticker, chart, or grid. |
+| `classes` | string | 'small' | Set classes known from module classes (xsmall, small, bright, dimmed etc.) |
+| `direction` | string | 'row' | You can set `row` or `column`. setting row will place chart next to the table/grid/ticker as long as there is enough space available |
 | `timeFormat` | string | 'DD-MM HH:mm' | Format of dates to be shown. Use moment.js format style here |
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
-| `alias` | array | ["APPLE", "GOOGLE", "TESLA"] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol. |
+| `alias` | array | [] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol name. |
 | `purchasePrice` | array | [123.45, 123.45, 123.45] | Array of own purchase prices |
 | `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
 | `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
-| `mode` | string | 'table' | Use 'table' for table mode or 'ticker' for ticker mode. |
 | `showChart` | boolean | true | Whether to show the chart. |
-| `chartWidth` | integer | null | Determines width of chart |
+| `chartWidth` | integer | null | Determines width of chart, separate from overall width above |
 | `chartInterval` | string | 'daily' | Chart interval. Currently only daily supported! |
 | `showVolume` | boolean | true | Show volume bars in the chart. |
 | `movingAverage` | object | `{ type: "SMA", periods: [200]}`  | movingAverages to include in the graph. Use `EMA` or `SMA` type and an array of all moving averages you want to see. Consider that every MA uses an own API call. |
