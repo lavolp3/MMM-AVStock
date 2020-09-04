@@ -23,7 +23,7 @@ Module.register("MMM-AVStock", {
         /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
         purchasePrice: [0,0,0],
         showPurchasePrices: false,
-        showPerformance2Purchase: false,
+        showPerformance2Purchase: false, 
         /* spitzlbergerj - end */
         locale: config.language,
         width: '100%',
