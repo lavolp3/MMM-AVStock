@@ -12,6 +12,9 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - `mode:ticker with own purchase prices`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
 
+- `mode:ticker with own purchase prices and total performance compared to the purchase price`  
+![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
+
 
 ## UPDATES ##
 ** 2.0.0 **
@@ -108,6 +111,8 @@ I am working on an alternative API.
         tickerDuration: 20,
         showChart: false,
         showVolume: false,
+        showPurchasePrices: true,
+        showPerformance2Purchase: true,
     }
 },
 ```
@@ -123,7 +128,8 @@ I am working on an alternative API.
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
 | `alias` | array | ["APPLE", "GOOGLE", "TESLA"] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol. |
 | `purchasePrice` | array | [123.45, 123.45, 123.45] | Array of own purchase prices |
-| `showPurchasePrices` | boolean | false | Whether to show the own purchaseprices. |
+| `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
+| `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
