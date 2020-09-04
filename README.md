@@ -3,10 +3,10 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 
 ## Screenshot
-- `mode:table`  
+- `mode:table`
 ![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-table.PNG)
 
-- `mode:ticker`  
+- `mode:ticker`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
 
 - `mode:grid` with `direction:'row'` 
@@ -18,10 +18,11 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - `mode:ticker with own purchase prices and total performance compared to the purchase price`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
 
+
 ## UPDATES ##
 
-** Extension spitzlbergerj ***
-- Within the ticker mode, a line with the own purchase price and the display for profit and loss is added
+** Extension spitzlbergerj **
+- Within the ticker mode, a line with the own purchase price and the display for profit and loss is added. The performance compared to the own purchase price can be displayed too.
 
 ** 2.1.0 **
 - grid layout
@@ -106,6 +107,7 @@ I am working on an alternative API.
     }
 },
 ```
+
 ### mode ticker with own purchase prices
 
 ```javascript
@@ -127,7 +129,6 @@ I am working on an alternative API.
     }
 },
 ```
-
 
 ## Configuration Options
 
