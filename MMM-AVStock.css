@@ -14,6 +14,10 @@
   line-height:1.5em;
 }
 
+#AVSTOCK > div {
+  margin-bottom: 20px;
+}
+
 #AVSTOCK .changeP {
     margin-left: 6px;
 }
@@ -54,24 +58,29 @@
 
 /***** GRID *****/
 
-#AVSTOCK .grid-wrap {
+#AVSTOCK .grid-wrap .grid {
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;  
-  min-width: 400px;
   justify-content: space-around;
   align-content: flex-start;
   text-align: left;
+  margin-bottom: 20px;
 }
 
-#AVSTOCK .grid-wrap .stock_item {
-  width: 115px;
+#AVSTOCK .grid .stock_item {
+  width: 110px;
   padding: 2px 2px 2px 4px;
 }
 
-#AVSTOCK .grid-wrap .anchor {
+#AVSTOCK .grid .anchor {
   justify-content: space-between;
   flex-wrap: wrap;
+  width: 100%
+}
+
+#AVSTOCK .grid .volume {
+  margin-left: 0px
 }
 
 /***** TICKER *****/

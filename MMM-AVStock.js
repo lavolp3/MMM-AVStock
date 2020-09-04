@@ -21,7 +21,7 @@ Module.register("MMM-AVStock", {
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: [],
         locale: config.language,
-        width: 400,
+        width: null,
         height: null,
         direction: 'row',
         classes: 'small',
@@ -103,8 +103,6 @@ Module.register("MMM-AVStock", {
             this.log("Preparing chart...");
             this.prepareChart()
         }
-        this.prepareTagLine();
-        
     },
 
     getStockName: function(symbol) {
@@ -119,7 +117,7 @@ Module.register("MMM-AVStock", {
         
         var chartWrapper = document.createElement("div");
         chartWrapper.innerHTML = "";
-        chartWrapper.style.width = this.config.width + 'px';
+        chartWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
         //chartWrapper.style.height = this.config.height+'px';
         
         var stockChart = document.createElement("div");
@@ -152,6 +150,7 @@ Module.register("MMM-AVStock", {
         
         chartWrapper.appendChild(head);
         chartWrapper.appendChild(stockChart);
+        chartWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(chartWrapper);
     },
 
@@ -161,8 +160,7 @@ Module.register("MMM-AVStock", {
         wrapper.innerHTML = "";
 
         var tableWrapper = document.createElement("div");
-        tableWrapper.style.width = this.config.width+'px';
-        //tableWrapper.style.height = this.config.height+'px';
+        tableWrapper.style.width = (this.config.width == null) ? 'auto' : this.config.width + 'px';
         
         var tbl = document.createElement("table");
         tbl.id = "AVSTOCK_TABLE";
@@ -201,6 +199,7 @@ Module.register("MMM-AVStock", {
             tbl.appendChild(tr);
         }
         tableWrapper.appendChild(tbl);
+        if (!this.config.showChart) tableWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(tableWrapper);
     },
 
@@ -209,7 +208,10 @@ Module.register("MMM-AVStock", {
         wrapper.innerHTML = "";
         var gridWrapper = document.createElement("div");
         gridWrapper.className = "grid-wrap";
-        gridWrapper.style.width = this.config.width+'px';
+        gridWrapper.style.width = (this.config.width == null) ? 'auto' : this.config.width + 'px';
+        
+        var grid = document.createElement("div");
+        grid.className = "grid";
         
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
@@ -235,14 +237,9 @@ Module.register("MMM-AVStock", {
             change.id = "grid_change_" + hashId;
 
             var vol = document.createElement("div");
-            vol.className = "volume";
+            vol.className = "volume xsmall";
             vol.innerHTML = "---";
             vol.id = "grid_volume_" + hashId;
-            
-            /*var changeP = document.createElement("div");
-            changeP.className = "changeP";
-            changeP.innerHTML = "---";
-            changeP.id = "grid_changeP_" + hashId;*/
 
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
@@ -258,8 +255,10 @@ Module.register("MMM-AVStock", {
             anchor.appendChild(change);
             anchor.appendChild(vol);
             gridItem.appendChild(anchor);
-            gridWrapper.appendChild(gridItem);
+            grid.appendChild(gridItem);
         }
+        gridWrapper.appendChild(grid);
+        if (!this.config.showChart) gridWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(gridWrapper);
     },
 
@@ -315,17 +314,17 @@ Module.register("MMM-AVStock", {
             ticker.appendChild(tickerItem);
         }
         tickerWrapper.appendChild(ticker);
+        if (!this.config.showChart) tickerWrapper.appendChild(this.addTagLine);
         wrapper.appendChild(tickerWrapper);
     },
     
-    prepareTagLine: function () {
-        var wrapper = document.getElementById("AVSTOCK");
+    addTagLine: function () {
         var tl = document.createElement("div");
         tl.className = "tagline";
-        tl.style.width = this.config.width+'px';
+        //tl.style.width = (this.config.width == null) ? 'auto' : this.config.width + 'px';
         tl.id = "AVSTOCK_TAGLINE";
         tl.innerHTML = "Last quote: ";
-        wrapper.appendChild(tl);
+        return tl;
     },
 
     socketNotificationReceived: function(noti, payload) {
@@ -704,22 +703,8 @@ Module.register("MMM-AVStock", {
             ]);
         }
         return ohlc;
-    },
-    
-    /*formatTech: function(techSeries) {
-        var values = [];
-        var series = techSeries.reverse();
-        this.log("Series for Chart: "+series)
-        for (var i = 0; i < series.length; i++) {
-            values.push([
-                parseInt(moment(series[i].date).format("x")), // the date
-                parseFloat(series[i].close) // close
-            ]);
-        }
-        return values;
-    },*/
-    
-    
+    },   
+
     formatNumber: function (number, digits) {
         return parseFloat(Math.abs(number)).toLocaleString(this.config.locale, {
             minimumFractionDigits: digits,
@@ -742,7 +727,6 @@ Module.register("MMM-AVStock", {
             return volume
         }
     },
-
 
     log: function (msg) {
         if (this.config && this.config.debug) {
