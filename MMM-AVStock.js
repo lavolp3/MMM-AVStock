@@ -20,11 +20,6 @@ Module.register("MMM-AVStock", {
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
-        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
-        purchasePrice: [0,0,0],
-        showPurchasePrices: false,
-        showPerformance2Purchase: false, 
-        /* spitzlbergerj - end */
         locale: config.language,
         width: '100%',
         tickerDuration: 20,
@@ -49,6 +44,11 @@ Module.register("MMM-AVStock", {
         coloredCandles: true,
         premiumAccount: false,            // To change poolInterval, set this to true - Only For Premium Account
         debug: false,
+        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+        purchasePrice: [0,0,0],
+        showPurchasePrices: false,
+        showPerformance2Purchase: false,
+        /* spitzlbergerj - end */
     },
     
     getScripts: function() {
