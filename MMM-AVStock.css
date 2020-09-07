@@ -3,9 +3,14 @@
 	100% { background-color:#000; }
 }
 
+#AVSTOCK {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: stretch;
+}
 
 #AVSTOCK * {
-  font-size: 16px;
   line-height:1.5em;
 }
 
@@ -39,7 +44,6 @@
   border: 1px solid #666;
   margin: 5px;
   width: 200px;
-  line-height: 1.2em;
   display: inline-block;
 }
 
@@ -48,6 +52,27 @@
   flex-direction:row;
 }
 
+/***** GRID *****/
+
+#AVSTOCK .grid-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;  
+  min-width: 400px;
+  justify-content: space-around;
+  align-content: flex-start;
+  text-align: left;
+}
+
+#AVSTOCK .grid-wrap .stock_item {
+  width: 115px;
+  padding: 2px 2px 2px 4px;
+}
+
+#AVSTOCK .grid-wrap .anchor {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
 
 /***** TICKER *****/
 
