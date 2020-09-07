@@ -387,7 +387,7 @@ Module.register("MMM-AVStock", {
             tr.className = "stock_tr " + ud;
         }, 1500);
     },
-    
+
     updateGrid: function(stock) {
         var hash = stock.quote.hash;
         var gridItem = document.getElementById("grid_STOCK_" + hash);
@@ -396,7 +396,7 @@ Module.register("MMM-AVStock", {
         var changeTag = document.getElementById("grid_change_" + hash);
         changeTag.innerHTML = stock.quote.changeP;
         var vol = document.getElementById("grid_volume_" + hash);
-        vol.innerHTML = stock.quote.volume, 0;
+        vol.innerHTML = stock.quote.volume;
         var ud = (stock.quote.up) ? "up" : "down";
         gridItem.className = "animated stock_item stock_tr " + ud;
         var tl = document.getElementById("AVSTOCK_TAGLINE");
@@ -423,8 +423,8 @@ Module.register("MMM-AVStock", {
             tr.className = "stock_item stock " + ud;
         }, 1500);
     },
-    
-    updateChart: function(stock) {      
+
+    updateChart: function(stock) {
 
         if (stock.ohlc && stock.quote) {
             //update header
@@ -437,7 +437,7 @@ Module.register("MMM-AVStock", {
             priceTag.innerHTML = stock.quote.price;
             var changePTag = document.getElementById("stockchart_changeP");
             changePTag.innerHTML = stock.quote.changeP;
-            
+
             // set the allowed units for data grouping
             groupingUnits = [[
                     'day', [1,2,3,4,5,6,7]
@@ -449,7 +449,7 @@ Module.register("MMM-AVStock", {
                     'year',[1]
                 ]
             ];
-            
+
             var stockSeries = [
                 {
                     type: this.config.chartType,
@@ -470,7 +470,7 @@ Module.register("MMM-AVStock", {
                     yAxis: 1,
                     dataGrouping: {
                         units: groupingUnits
-                    }                    
+                    }
                 });
             };
             for (var func in stock) {
@@ -492,7 +492,7 @@ Module.register("MMM-AVStock", {
                 }
             };
             this.log(stockSeries);
-            
+
             // create the chart
             var stockChart = Highcharts.stockChart('AVSTOCK_CHART', {
                 rangeSelector: {
@@ -515,18 +515,18 @@ Module.register("MMM-AVStock", {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
                     },
-                    
+
                     ohlc: {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
                     },
-                    
+
                     column: {
                         colorByPoint: true,
                         colors: this.getBarColors(stock)
                     }
                 },
-                
+
                 yAxis: [
                     {
                         labels: {
@@ -561,7 +561,7 @@ Module.register("MMM-AVStock", {
                                 color: this.config.chartLabelColor
                             }
                         },
-                        
+
                         title: {
                             //text: 'Volume'
                         },
@@ -571,7 +571,7 @@ Module.register("MMM-AVStock", {
                         //lineWidth: 2
                     }
                 ],
-                
+
                 xAxis: [
                     {
                         type: 'datetime',
@@ -612,7 +612,7 @@ Module.register("MMM-AVStock", {
                         ]]
                     }
                 ],
-                
+
                 series: stockSeries,
 
                 /*annotations: [
@@ -626,7 +626,7 @@ Module.register("MMM-AVStock", {
                         }]
                     }
                 ],*/
-                
+
                 tooltip: {
                     split: true
                 },
@@ -640,7 +640,6 @@ Module.register("MMM-AVStock", {
                 scrollbar: {
                     enabled: false,
                 },
-                
                 credits: {
                     enabled: false,
                 },
@@ -651,14 +650,14 @@ Module.register("MMM-AVStock", {
         var tl = document.getElementById("AVSTOCK_TAGLINE");
         tl.innerHTML = "Last quote: " + stock.quote.requestTime;
     },
-    
+
     getBarColors: function (stock) {
         var colors = [];
         var upColor = (this.config.coloredCandles) ? 'green' : this.config.chartLineColor;
-        var downColor = (this.config.coloredCandles) ? 'red' : 'none';    
+        var downColor = (this.config.coloredCandles) ? 'red' : 'none';
         for (var i = 0; i < stock.ohlc.values.length; i++) {
-            colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
-        }        
+            colors.push(((stock.ohlc.values[i][4] - stock.ohlc.values[i][1]) > 0) ? upColor : downColor)
+        }
         return colors;
     },
 
@@ -681,7 +680,7 @@ Module.register("MMM-AVStock", {
             symbol: series[l].symbol
         } 
     },
-    
+
     formatOHLC: function(stockSeries) {
         var ohlc = {
             values: [],
@@ -708,7 +707,7 @@ Module.register("MMM-AVStock", {
             ]);
         }
         return ohlc;
-    },   
+    },
 
     formatNumber: function (number, digits) {
         return parseFloat(Math.abs(number)).toLocaleString(this.config.locale, {
@@ -716,7 +715,7 @@ Module.register("MMM-AVStock", {
             maximumFractionDigits: digits
         });
     },
-    
+
     formatVolume: function(volume, digits) {
         if (volume > 9999999) {
             return this.formatNumber(volume/1000000, digits) + "m"
