@@ -46,6 +46,11 @@ Module.register("MMM-AVStock", {
         coloredCandles: true,
         premiumAccount: false,            // To change poolInterval, set this to true - Only For Premium Account
         debug: false,
+        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+        purchasePrice: [0,0,0],
+        showPurchasePrices: false,
+        showPerformance2Purchase: false,
+        /* spitzlbergerj - end */
     },
     
     getScripts: function() {
@@ -274,6 +279,9 @@ Module.register("MMM-AVStock", {
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
+            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            var pPrice = this.config.purchasePrice[i];
+            /* spitzlbergerj - end */
             var hashId = stock.hashCode();
             var tickerItem = document.createElement("div");
             tickerItem.className = "stock_item stock";
@@ -302,6 +310,21 @@ Module.register("MMM-AVStock", {
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
 
+            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            var purchase = document.createElement("div");
+            purchase.className = "purchase item_sect";
+
+            var purchasePrice = document.createElement("div");
+            purchasePrice.className = "purchasePrice";
+            purchasePrice.innerHTML = this.formatNumber(pPrice, this.config.decimals),
+            purchasePrice.id = "purchasePrice_" + hashId;
+
+            var purchaseChange = document.createElement("div");
+            purchaseChange.className = "purchaseChange";
+            purchaseChange.innerHTML = this.formatNumber(100, 0) + "%";
+            purchaseChange.id = "purchaseChange_" + hashId;            
+            /* spitzlbergerj - end */
+
             if (this.config.showChart) {
                 tickerItem.addEventListener("click", function() {
                     self.log("Clicked on " + self.config.symbols[i]);
@@ -312,6 +335,15 @@ Module.register("MMM-AVStock", {
             anchor.appendChild(price);
             anchor.appendChild(changeP);
             tickerItem.appendChild(anchor);
+            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+            if (this.config.showPurchasePrices) {
+                purchase.appendChild(purchasePrice);
+                if (this.config.showPerformance2Purchase) {
+                    purchase.appendChild(purchaseChange);
+                }
+                tickerItem.appendChild(purchase);
+            }
+            /* spitzlbergerj - end */
             ticker.appendChild(tickerItem);
         }
         tickerWrapper.appendChild(ticker);
@@ -416,6 +448,23 @@ Module.register("MMM-AVStock", {
         changePTag.innerHTML = stock.quote.changeP;
         var ud = (stock.quote.up) ? "up" : "down";
         tr.className = "animated stock_item stock_tr " + ud;
+        
+        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
+        var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
+        if (this.config.showPerformance2Purchase) {
+            var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
+        }
+        var floatStockPrice = parseFloat(stock.quote.price);
+        var floatPurchacePrise = parseFloat(purchasePriceTag.innerHTML);
+        var performace2Purchase = floatStockPrice / floatPurchacePrise * 100;
+        var ppd = (floatStockPrice > floatPurchacePrise) ? "profit" : "loss";
+        purchasePriceTag.className = "purchasePrice " + ppd;
+        if (this.config.showPerformance2Purchase) {
+            purchaseChangeTag.innerHTML = this.formatNumber(performace2Purchase, 0) + "%";
+            purchaseChangeTag.className = "purchaseChange " + ppd;
+        }
+        /* spitzlbergerj - end */
+
         var tl = document.getElementById("AVSTOCK_TAGLINE");
         tl.innerHTML = "Last quote: " + stock.quote.date;
         setTimeout(()=>{
