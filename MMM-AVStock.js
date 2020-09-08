@@ -44,13 +44,10 @@ Module.register("MMM-AVStock", {
         chartLineColor: '#eee',
         chartLabelColor: '#eee',
         coloredCandles: true,
-        premiumAccount: false,            // To change poolInterval, set this to true - Only For Premium Account
-        debug: false,
-        /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
         purchasePrice: [0,0,0],
         showPurchasePrices: false,
         showPerformance2Purchase: false,
-        /* spitzlbergerj - end */
+        debug: false,
     },
     
     getScripts: function() {
@@ -279,9 +276,7 @@ Module.register("MMM-AVStock", {
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
-            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
-            var pPrice = this.config.purchasePrice[i];
-            /* spitzlbergerj - end */
+            var pPrice = this.config.purchasePrice[i] || 1;
             var hashId = stock.hashCode();
             var tickerItem = document.createElement("div");
             tickerItem.className = "stock_item stock";
@@ -310,7 +305,6 @@ Module.register("MMM-AVStock", {
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
 
-            /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
             var purchase = document.createElement("div");
             purchase.className = "purchase item_sect";
 
@@ -321,9 +315,8 @@ Module.register("MMM-AVStock", {
 
             var purchaseChange = document.createElement("div");
             purchaseChange.className = "purchaseChange";
-            purchaseChange.innerHTML = this.formatNumber(100, 0) + "%";
+            purchaseChange.innerHTML = this.formatNumber(0, 0) + "%";
             purchaseChange.id = "purchaseChange_" + hashId;            
-            /* spitzlbergerj - end */
 
             if (this.config.showChart) {
                 tickerItem.addEventListener("click", function() {
@@ -451,18 +444,15 @@ Module.register("MMM-AVStock", {
         tr.className = "animated stock_item stock_tr " + ud;
         
         /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
-        var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
-        if (this.config.showPerformance2Purchase) {
-            var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
-        }
-        var floatStockPrice = parseFloat(stock.quote.price);
-        var floatPurchacePrise = parseFloat(purchasePriceTag.innerHTML);
-        var performace2Purchase = floatStockPrice / floatPurchacePrise * 100;
-        var ppd = (floatStockPrice > floatPurchacePrise) ? "profit" : "loss";
-        purchasePriceTag.className = "purchasePrice " + ppd;
-        if (this.config.showPerformance2Purchase) {
-            purchaseChangeTag.innerHTML = this.formatNumber(performace2Purchase, 0) + "%";
-            purchaseChangeTag.className = "purchaseChange " + ppd;
+        var ppd = (stock.quote.profit) ? "profit" : "loss";
+        if (this.config.showPurchasePrices) {
+            var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
+            purchasePriceTag.className = "purchasePrice " + ppd;
+            if (this.config.showPerformance2Purchase) {
+                var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
+                purchaseChangeTag.innerHTML = stock.quote.perf2P;
+                purchaseChangeTag.className = "purchaseChange " + ppd;
+            }
         }
         /* spitzlbergerj - end */
 
@@ -712,6 +702,8 @@ Module.register("MMM-AVStock", {
 
     formatQuotes: function(series) {
         var l = series.length-1;
+        var stockIndex = this.config.symbols.indexOf(series[l].smbol);
+        var pPrice = this.config.purchasePrice[stockIndex] || 1;
         return {
             date: series[l].date,
             price: this.formatNumber(series[l].close, this.config.decimals),
@@ -722,11 +714,13 @@ Module.register("MMM-AVStock", {
             change: this.formatNumber(series[l].change, this.config.decimals),
             changeP: this.formatNumber(series[l].changeP, 1) + '%',
             volume: this.formatVolume(series[l].volume, 1),
-            //volume: series[l].volume,
             up: series[l].up,
             hash: series[l].hash,
             requestTime: series[l].requestTime,
-            symbol: series[l].symbol
+            symbol: series[l].symbol,
+            pPrice: this.formatNumber(pPrice, this.config.decimals),
+            perf2P: this.formatNumber(1 - (series[l].close/pPrice), 1) + '%',
+            profit: (pPrice > series[l].close)
         } 
     },
 
