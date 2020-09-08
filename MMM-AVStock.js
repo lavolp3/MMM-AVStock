@@ -11,8 +11,6 @@ String.prototype.hashCode = function() {
     return hash;
 };
 
-var headers = ["symbol", "price", "close", "change", "changeP", "volume"];
-var headerTitles = ["Symbol", "Price", "Prev.Close", "CHG", "CHG%", "Volume"];
 
 Module.register("MMM-AVStock", {
     defaults: {
@@ -21,13 +19,15 @@ Module.register("MMM-AVStock", {
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: [],
         locale: config.language,
-        width: 400,
+        width: null,
         height: null,
         direction: 'row',
         classes: 'small',
+        mode : "table",                  // "table", "ticker", "grid", "series"
         tickerDuration: 20,
         chartDays: 90,
-        mode : "table",                  // "table", "ticker", "grid"
+        tableHeaders: ["symbol", "price", "close", "change", "changeP", "volume"],
+        tableHeaderTitles: ["Symbol", "Price", "Close", "CHG", "CHG%", "Vol"],
         showChart: true,
         chartWidth: null,
         showVolume: true,
@@ -108,8 +108,6 @@ Module.register("MMM-AVStock", {
             this.log("Preparing chart...");
             this.prepareChart()
         }
-        this.prepareTagLine();
-        
     },
 
     getStockName: function(symbol) {
@@ -124,7 +122,7 @@ Module.register("MMM-AVStock", {
         
         var chartWrapper = document.createElement("div");
         chartWrapper.innerHTML = "";
-        chartWrapper.style.width = this.config.width + 'px';
+        chartWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
         //chartWrapper.style.height = this.config.height+'px';
         
         var stockChart = document.createElement("div");
@@ -157,6 +155,7 @@ Module.register("MMM-AVStock", {
         
         chartWrapper.appendChild(head);
         chartWrapper.appendChild(stockChart);
+        chartWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(chartWrapper);
     },
 
@@ -166,17 +165,16 @@ Module.register("MMM-AVStock", {
         wrapper.innerHTML = "";
 
         var tableWrapper = document.createElement("div");
-        tableWrapper.style.width = this.config.width+'px';
-        //tableWrapper.style.height = this.config.height+'px';
+        tableWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
         
         var tbl = document.createElement("table");
         tbl.id = "AVSTOCK_TABLE";
         var thead = document.createElement("thead");
         var tr = document.createElement("tr");
-        for (var i in headers) {
+        for (var i in this.config.tableHeaders) {
             var td = document.createElement("td");
-            td.innerHTML = headerTitles[i];
-            td.className = headers[i];
+            td.innerHTML = this.config.tableHeaderTitles[i];
+            td.className = this.config.tableHeaders[i];
             tr.appendChild(td);
         }
         thead.appendChild(tr);
@@ -189,12 +187,12 @@ Module.register("MMM-AVStock", {
             tr.className = "stock_tr";
             if (i % 2 != 0) tr.style.backgroundColor = '#333'
             tr.id = "STOCK_" + hashId;
-            for (let j = 0 ; j < headers.length; j++) {
+            for (let j = 0 ; j < this.config.tableHeaders.length; j++) {
                 var td = document.createElement("td");
                 var stockAlias = this.getStockName(stock);
                 td.innerHTML = (j != 0) ? "---" : stockAlias;
-                td.className = headers[j];
-                td.id = headers[j] + "_" + hashId;
+                td.className = this.config.tableHeaders[j];
+                td.id = this.config.tableHeaders[j] + "_" + hashId;
                 tr.appendChild(td);
             }
             if (this.config.showChart) {
@@ -206,6 +204,7 @@ Module.register("MMM-AVStock", {
             tbl.appendChild(tr);
         }
         tableWrapper.appendChild(tbl);
+        if (!this.config.showChart) tableWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(tableWrapper);
     },
 
@@ -214,7 +213,10 @@ Module.register("MMM-AVStock", {
         wrapper.innerHTML = "";
         var gridWrapper = document.createElement("div");
         gridWrapper.className = "grid-wrap";
-        gridWrapper.style.width = this.config.width+'px';
+        gridWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
+        
+        var grid = document.createElement("div");
+        grid.className = "grid";
         
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
@@ -240,14 +242,9 @@ Module.register("MMM-AVStock", {
             change.id = "grid_change_" + hashId;
 
             var vol = document.createElement("div");
-            vol.className = "volume";
+            vol.className = "volume xsmall";
             vol.innerHTML = "---";
             vol.id = "grid_volume_" + hashId;
-            
-            /*var changeP = document.createElement("div");
-            changeP.className = "changeP";
-            changeP.innerHTML = "---";
-            changeP.id = "grid_changeP_" + hashId;*/
 
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
@@ -263,8 +260,10 @@ Module.register("MMM-AVStock", {
             anchor.appendChild(change);
             anchor.appendChild(vol);
             gridItem.appendChild(anchor);
-            gridWrapper.appendChild(gridItem);
+            grid.appendChild(gridItem);
         }
+        gridWrapper.appendChild(grid);
+        if (!this.config.showChart) gridWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(gridWrapper);
     },
 
@@ -274,8 +273,9 @@ Module.register("MMM-AVStock", {
         var tickerWrapper = document.createElement("div");
         tickerWrapper.className = "ticker-wrap";
         var ticker = document.createElement("div");
-        ticker.className = "ticker";
+        ticker.id = "ticker";
         ticker.style.animationDuration = this.config.tickerDuration + "s";
+        ticker.style.width = (this.config.symbols.length * 160) + 'px';
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
@@ -347,17 +347,18 @@ Module.register("MMM-AVStock", {
             ticker.appendChild(tickerItem);
         }
         tickerWrapper.appendChild(ticker);
+        if (!this.config.showChart) tickerWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(tickerWrapper);
     },
     
-    prepareTagLine: function () {
-        var wrapper = document.getElementById("AVSTOCK");
+    
+    addTagLine: function () {
         var tl = document.createElement("div");
         tl.className = "tagline";
-        tl.style.width = this.config.width+'px';
+        //tl.style.width = (this.config.width == null) ? 'auto' : this.config.width + 'px';
         tl.id = "AVSTOCK_TAGLINE";
         tl.innerHTML = "Last quote: ";
-        wrapper.appendChild(tl);
+        return tl;
     },
 
     socketNotificationReceived: function(noti, payload) {
@@ -402,23 +403,23 @@ Module.register("MMM-AVStock", {
         var hash = stock.quote.hash;
         var tr = document.getElementById("STOCK_" + hash);
         var ud = "";
-        for (var j = 1 ; j < headers.length ; j++) {
-            var tdId = headers[j] + "_" + hash;
+        for (var j = 1 ; j < this.config.tableHeaders.length ; j++) {
+            var tdId = this.config.tableHeaders[j] + "_" + hash;
             var td = document.getElementById(tdId);
-            td.innerHTML = stock.quote[headers[j]];
-            td.className = headers[j];
-            if (["change", "changeP"].includes(headers[j])) {
+            td.innerHTML = stock.quote[this.config.tableHeaders[j]];
+            td.className = this.config.tableHeaders[j];
+            if (["change", "changeP"].includes(this.config.tableHeaders[j])) {
                 ud = (stock.quote.up) ? "up" : "down"
             }
         }
-        tr.className = "animated stock " + ud;
+        tr.className = "animated stock_tr " + ud;
         var tl = document.getElementById("AVSTOCK_TAGLINE");
         tl.innerHTML = "Last quote: " + stock.quote.requestTime;
         setTimeout(() => {
-            tr.className = "stock " + ud;
+            tr.className = "stock_tr " + ud;
         }, 1500);
     },
-    
+
     updateGrid: function(stock) {
         var hash = stock.quote.hash;
         var gridItem = document.getElementById("grid_STOCK_" + hash);
@@ -427,7 +428,7 @@ Module.register("MMM-AVStock", {
         var changeTag = document.getElementById("grid_change_" + hash);
         changeTag.innerHTML = stock.quote.changeP;
         var vol = document.getElementById("grid_volume_" + hash);
-        vol.innerHTML = this.formatVolume(stock.ohlc.volume[stock.ohlc.volume.length-1][1]);
+        vol.innerHTML = stock.quote.volume;
         var ud = (stock.quote.up) ? "up" : "down";
         gridItem.className = "animated stock_item stock_tr " + ud;
         var tl = document.getElementById("AVSTOCK_TAGLINE");
@@ -471,8 +472,8 @@ Module.register("MMM-AVStock", {
             tr.className = "stock_item stock " + ud;
         }, 1500);
     },
-    
-    updateChart: function(stock) {      
+
+    updateChart: function(stock) {
 
         if (stock.ohlc && stock.quote) {
             //update header
@@ -485,7 +486,7 @@ Module.register("MMM-AVStock", {
             priceTag.innerHTML = stock.quote.price;
             var changePTag = document.getElementById("stockchart_changeP");
             changePTag.innerHTML = stock.quote.changeP;
-            
+
             // set the allowed units for data grouping
             groupingUnits = [[
                     'day', [1,2,3,4,5,6,7]
@@ -497,7 +498,7 @@ Module.register("MMM-AVStock", {
                     'year',[1]
                 ]
             ];
-            
+
             var stockSeries = [
                 {
                     type: this.config.chartType,
@@ -518,7 +519,7 @@ Module.register("MMM-AVStock", {
                     yAxis: 1,
                     dataGrouping: {
                         units: groupingUnits
-                    }                    
+                    }
                 });
             };
             for (var func in stock) {
@@ -540,7 +541,7 @@ Module.register("MMM-AVStock", {
                 }
             };
             this.log(stockSeries);
-            
+
             // create the chart
             var stockChart = Highcharts.stockChart('AVSTOCK_CHART', {
                 rangeSelector: {
@@ -563,18 +564,18 @@ Module.register("MMM-AVStock", {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
                     },
-                    
+
                     ohlc: {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
                     },
-                    
+
                     column: {
                         colorByPoint: true,
                         colors: this.getBarColors(stock)
                     }
                 },
-                
+
                 yAxis: [
                     {
                         labels: {
@@ -609,7 +610,7 @@ Module.register("MMM-AVStock", {
                                 color: this.config.chartLabelColor
                             }
                         },
-                        
+
                         title: {
                             //text: 'Volume'
                         },
@@ -619,7 +620,7 @@ Module.register("MMM-AVStock", {
                         //lineWidth: 2
                     }
                 ],
-                
+
                 xAxis: [
                     {
                         type: 'datetime',
@@ -660,7 +661,7 @@ Module.register("MMM-AVStock", {
                         ]]
                     }
                 ],
-                
+
                 series: stockSeries,
 
                 /*annotations: [
@@ -674,7 +675,7 @@ Module.register("MMM-AVStock", {
                         }]
                     }
                 ],*/
-                
+
                 tooltip: {
                     split: true
                 },
@@ -688,7 +689,6 @@ Module.register("MMM-AVStock", {
                 scrollbar: {
                     enabled: false,
                 },
-                
                 credits: {
                     enabled: false,
                 },
@@ -696,15 +696,17 @@ Module.register("MMM-AVStock", {
         } else {
             console.error("Not enough data to update chart!");
         }
+        var tl = document.getElementById("AVSTOCK_TAGLINE");
+        tl.innerHTML = "Last quote: " + stock.quote.requestTime;
     },
-    
+
     getBarColors: function (stock) {
         var colors = [];
         var upColor = (this.config.coloredCandles) ? 'green' : this.config.chartLineColor;
-        var downColor = (this.config.coloredCandles) ? 'red' : 'none';    
+        var downColor = (this.config.coloredCandles) ? 'red' : 'none';
         for (var i = 0; i < stock.ohlc.values.length; i++) {
-            colors.push((stock.ohlc.values[i][4] - stock.ohlc.values[i][1] > 0) ? upColor : downColor)
-        }        
+            colors.push(((stock.ohlc.values[i][4] - stock.ohlc.values[i][1]) > 0) ? upColor : downColor)
+        }
         return colors;
     },
 
@@ -719,14 +721,15 @@ Module.register("MMM-AVStock", {
             close: this.formatNumber(series[l-1].close, this.config.decimals),
             change: this.formatNumber(series[l].change, this.config.decimals),
             changeP: this.formatNumber(series[l].changeP, 1) + '%',
-            volume: this.formatNumber(series[l].volume, 0),
+            volume: this.formatVolume(series[l].volume, 1),
+            //volume: series[l].volume,
             up: series[l].up,
             hash: series[l].hash,
             requestTime: series[l].requestTime,
             symbol: series[l].symbol
         } 
     },
-    
+
     formatOHLC: function(stockSeries) {
         var ohlc = {
             values: [],
@@ -754,44 +757,29 @@ Module.register("MMM-AVStock", {
         }
         return ohlc;
     },
-    
-    /*formatTech: function(techSeries) {
-        var values = [];
-        var series = techSeries.reverse();
-        this.log("Series for Chart: "+series)
-        for (var i = 0; i < series.length; i++) {
-            values.push([
-                parseInt(moment(series[i].date).format("x")), // the date
-                parseFloat(series[i].close) // close
-            ]);
-        }
-        return values;
-    },*/
-    
-    
+
     formatNumber: function (number, digits) {
         return parseFloat(Math.abs(number)).toLocaleString(this.config.locale, {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits
         });
     },
-    
-    formatVolume: function(volume) {
+
+    formatVolume: function(volume, digits) {
         if (volume > 9999999) {
-            return this.formatNumber(volume/1000000, 0) + "M"
+            return this.formatNumber(volume/1000000, digits) + "m"
         } else if (volume > 700000) {
-            return this.formatNumber(volume/1000000, 1) + "M"
+            return this.formatNumber(volume/1000000, digits+1) + "m"
         } else if (volume > 99999) {
-            return this.formatNumber(volume/1000, 0) + "K"
+            return this.formatNumber(volume/1000, digits) + "k"
         } else if (volume > 700) {
-            return this.formatNumber(volume/1000, 1) + "K"
+            return this.formatNumber(volume/1000, digits+1) + "k"
         } else if (volume == 0) {
             return ""
         } else {
             return volume
         }
     },
-
 
     log: function (msg) {
         if (this.config && this.config.debug) {
