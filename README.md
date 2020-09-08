@@ -12,8 +12,15 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - `mode:grid` with `direction:'row'`   
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-grid.PNG)
 
+- `mode:ticker with own purchase prices`  
+![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
+
+- `mode:ticker with own purchase prices and total performance compared to the purchase price`  
+![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
+
 
 ## UPDATES ##
+
 
 ** 2.2.0 **
 - (by spitzlbergerj) within the ticker mode, a line with the own purchase price and the display for profit and loss is added. The performance compared to the own purchase price can be displayed too.
@@ -108,6 +115,27 @@ I am working on an alternative API.
 },
 ```
 
+### mode ticker with own purchase prices
+
+```javascript
+{
+    module: "MMM-AVStock",
+    position: "bottom_bar",
+    config: {
+        apiKey : "",{
+        mode : "ticker",
+        symbols : ["TL0.F","AMZN","MSFT"],
+        alias: ["Tesla","Amazon","Microsoft"],
+        purchasePrice: [123.45, 1234.56, 12.34],
+        decimals: 0,
+        tickerDuration: 20,
+        showChart: false,
+        showVolume: false,
+        showPurchasePrices: true,
+        showPerformance2Purchase: true,
+    }
+},
+```
 
 ## Configuration Options
 
@@ -121,6 +149,9 @@ I am working on an alternative API.
 | `timeFormat` | string | 'DD-MM HH:mm' | Format of dates to be shown. Use moment.js format style here |
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
 | `alias` | array | [] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol name. |
+| `purchasePrice` | array | [123.45, 123.45, 123.45] | Array of own purchase prices |
+| `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
+| `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |

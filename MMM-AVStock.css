@@ -129,6 +129,28 @@
   }
 }
 
+/* spitzlbergerj: Extension ticker with line with own purchase price and the display for profit and loss */
+#AVSTOCK .purchasePrice.profit, .purchaseChange.profit  {
+  color: #0f0;
+}
+
+#AVSTOCK .purchasePrice.loss, .purchaseChange.loss {
+  color: #f00f00;
+}
+
+#AVSTOCK .purchase {
+  display:flex;
+  flex-direction:row;
+}
+
+#AVSTOCK .purchaseChange {
+  margin-left: 10px;
+  font-size: 16px !important;
+}
+
+/* spitzlbergerj - end */
+
+
 
 /***** TABLE *****/
 
