@@ -47,6 +47,7 @@ Module.register("MMM-AVStock", {
         purchasePrice: [0,0,0],
         showPurchasePrices: false,
         showPerformance2Purchase: false,
+        showPerformanceAbsolute: false,
         debug: false,
     },
     
@@ -444,15 +445,18 @@ Module.register("MMM-AVStock", {
         tr.className = "animated stock_item stock_tr " + ud;
         
         /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
-        var ppd = (stock.quote.profit) ? "profit" : "loss";
-        if (this.config.showPurchasePrices) {
-            var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
-            purchasePriceTag.className = "purchasePrice " + ppd;
-            if (this.config.showPerformance2Purchase) {
-                var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
-                purchaseChangeTag.innerHTML = stock.quote.perf2P;
-                purchaseChangeTag.className = "purchaseChange " + ppd;
-            }
+        var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
+        if (this.config.showPerformance2Purchase) {
+            var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
+        }
+        var floatStockPrice = parseFloat(stock.quote.price);
+        var floatPurchacePrise = parseFloat(purchasePriceTag.innerHTML);
+        var performace2Purchase = (floatStockPrice / floatPurchacePrise * 100) - ((this.config.showPerformanceAbsolute) ? 0 : 100);
+        var ppd = (floatStockPrice > floatPurchacePrise) ? "profit" : "loss";
+        purchasePriceTag.className = "purchasePrice " + ppd;
+        if (this.config.showPerformance2Purchase) {
+            purchaseChangeTag.innerHTML = this.formatNumber(performace2Purchase, 0) + "%";
+            purchaseChangeTag.className = "purchaseChange " + ppd;
         }
         /* spitzlbergerj - end */
 
