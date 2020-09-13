@@ -21,6 +21,8 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 ## UPDATES ##
 
+** spitzlbergerj, 20200913 **
+- performance can now also be displayed relatively by using the option showPerformanceAbsolute
 
 ** 2.2.0 **
 - (by spitzlbergerj) within the ticker mode, a line with the own purchase price and the display for profit and loss is added. The performance compared to the own purchase price can be displayed too.
@@ -133,6 +135,7 @@ I am working on an alternative API.
         showVolume: false,
         showPurchasePrices: true,
         showPerformance2Purchase: true,
+        showPerformanceAbsolute: true,
     }
 },
 ```
@@ -152,6 +155,7 @@ I am working on an alternative API.
 | `purchasePrice` | array | [123.45, 123.45, 123.45] | Array of own purchase prices |
 | `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
 | `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
+| `showPerformanceAbsolute` | boolean | false | Whether to show the total performace as absolute or relative value. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
