@@ -1,3 +1,4 @@
+
 String.prototype.hashCode = function() {
     var hash = 0;
     if (this.length == 0) {
@@ -26,8 +27,9 @@ Module.register("MMM-AVStock", {
         mode : "table",                  // "table", "ticker", "grid", "series"
         tickerDuration: 20,
         chartDays: 90,
-        tableHeaders: ["symbol", "price", "close", "change", "changeP", "volume"],
-        tableHeaderTitles: ["Symbol", "Price", "Close", "CHG", "CHG%", "Vol"],
+        tableHeaders: ["symbol", "price", "close", "change", "changeP", "pPrice", "perf2P", "volume"],
+        tableHeaderTitles: ["Symbol", "Price", "Close", "CHG", "CHG%", "Purch", "Profit", "Vol"],
+        maxTableRows: null,
         showChart: true,
         chartWidth: null,
         showVolume: true,
@@ -49,12 +51,11 @@ Module.register("MMM-AVStock", {
         showPerformance2Purchase: false,
         debug: false,
     },
-    
+ 
     getScripts: function() {
         return [
             this.file("node_modules/highcharts/highstock.js"),
             this.file("node_modules/highcharts/modules/no-data-to-display.js")
-            //this.file("node_modules/highcharts/modules/*.js")
         ];
     },
 
@@ -116,54 +117,54 @@ Module.register("MMM-AVStock", {
 
     prepareChart: function() {
         var wrapper = document.getElementById("AVSTOCK");
-        
+
         var chartWrapper = document.createElement("div");
         chartWrapper.innerHTML = "";
         chartWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
         //chartWrapper.style.height = this.config.height+'px';
-        
+
         var stockChart = document.createElement("div");
         stockChart.innerHTML = "";
         stockChart.id = "AVSTOCK_CHART";
-        
+
         var head = document.createElement("div");
         head.className = "head anchor";
         head.id = "stockchart_head";
-        
+
         var symbol = document.createElement("div");
         symbol.className = "symbol item_sect";
         symbol.innerHTML = "---";
         symbol.style.marginRight = "10px";
         symbol.id = "stockchart_symbol";
-            
+
         var price = document.createElement("div");
         price.className = "price";
         price.innerHTML = "---";
         price.id = "stockchart_price";
-            
+
         var changeP = document.createElement("div");
         changeP.className = "changeP";
         changeP.innerHTML = "---";
         changeP.id = "stockchart_changeP";
-        
+
         head.appendChild(symbol);
         head.appendChild(price);
         head.appendChild(changeP);
-        
+
         chartWrapper.appendChild(head);
         chartWrapper.appendChild(stockChart);
         chartWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(chartWrapper);
     },
 
-    prepareTable: function() {      
-        
+    prepareTable: function() {
+
         var wrapper = document.getElementById("AVSTOCK");
         wrapper.innerHTML = "";
 
         var tableWrapper = document.createElement("div");
         tableWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
-        
+
         var tbl = document.createElement("table");
         tbl.id = "AVSTOCK_TABLE";
         var thead = document.createElement("thead");
@@ -177,7 +178,15 @@ Module.register("MMM-AVStock", {
         thead.appendChild(tr);
         tbl.appendChild(thead);
         var self = this;
-        for (let i = 0; i < this.config.symbols.length; i++) {
+
+        if (this.config.maxTableRows == null) this.config.maxTableRows = this.config.symbols.length;
+        var pages = Math.ceil(this.config.symbols.length / this.config.maxTableRows);
+        var rowCount = Math.min(this.config.maxTableRows, this.config.symbols.length);
+        var rows = rowCount;
+        this.log("RowCount " + rowCount + ", " + pages + " Pages, Page 0, " + rows + " rows");
+
+
+        for (let i = 0; i < rowCount ; i++) {
             var stock = this.config.symbols[i];
             var hashId = stock.hashCode();
             var tr = document.createElement("tr");
@@ -201,8 +210,83 @@ Module.register("MMM-AVStock", {
             tbl.appendChild(tr);
         }
         tableWrapper.appendChild(tbl);
+	if (pages > 1) {
+            var tableNav = document.createElement("div");
+            tableNav.className = "avstock-nav";
+	    for (let k = 0; k < pages; k++) {
+                var circle = document.createElement("i");
+                circle.className = "fas fa-circle avstock-indicator";
+                circle.id = "avstock-ind-" + k;
+                circle.addEventListener("click", function () {
+                    self.log("Navigator " + k + " clicked!");
+                    self.switchTable(k);
+                });
+                if (k == 0) circle.classList.add("bright","active-nav");
+                tableNav.appendChild(circle);
+            }
+            tableWrapper.appendChild(tableNav);
+        }
         if (!this.config.showChart) tableWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(tableWrapper);
+    },
+
+
+    switchTable: function(page) {
+        var tbl = document.getElementById("AVSTOCK_TABLE");
+        tbl.innerHTML = "";
+
+        var thead = document.createElement("thead");
+        var tr = document.createElement("tr");
+        for (var i in this.config.tableHeaders) {
+            var td = document.createElement("td");
+            td.innerHTML = this.config.tableHeaderTitles[i];
+            td.className = this.config.tableHeaders[i];
+            tr.appendChild(td);
+        }
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        var pages = Math.ceil(this.config.symbols.length / this.config.maxTableRows);
+        var rowCount = Math.min(this.config.maxTableRows, this.config.symbols.length);
+        var rows = ((pages > 1) && (page == pages-1)) ? (this.config.symbols.length % (page*rowCount)) : rowCount;
+        this.log(rowCount + " rowCount, " + pages + " Pages, Page 0, " + rows + " rows");
+
+        var self = this;
+
+        for (let i = page*rowCount; i < (page*rowCount + rows) ; i++) {
+            var symbol = this.config.symbols[i];
+            var hashId = symbol.hashCode();
+            var tr = document.createElement("tr");
+            tr.className = "stock_tr";
+            if (i % 2 != 0) tr.style.backgroundColor = '#333'
+            tr.id = "STOCK_" + hashId;
+            for (let j = 0 ; j < this.config.tableHeaders.length; j++) {
+                var td = document.createElement("td");
+                var stockAlias = this.getStockName(symbol);
+                td.innerHTML = (j != 0) ? (this.stocks[symbol].quote) ? this.stocks[symbol]["quote"][this.config.tableHeaders[j]] : "---" : stockAlias;
+                td.className = this.config.tableHeaders[j];
+                td.id = this.config.tableHeaders[j] + "_" + hashId;
+                tr.appendChild(td);
+            }
+            if (this.config.showChart) {
+                tr.addEventListener("click", function () {
+                    self.log("Clicked on " + self.config.symbols[i]);
+                    self.updateChart(self.stocks[self.config.symbols[i]]);
+                });
+            }
+            tbl.appendChild(tr);
+        }
+        if (pages > 1) {
+            for (let k = 0; k < pages; k++) {
+                var circle = document.getElementById("avstock-ind-" + k);
+                if (k == page) {
+                    circle.classList.add("bright","active-nav")
+                } else {
+                    circle.classList.remove("bright","active-nav")
+                }
+            }
+        }
+
     },
 
     prepareGrid: function() {
@@ -211,13 +295,14 @@ Module.register("MMM-AVStock", {
         var gridWrapper = document.createElement("div");
         gridWrapper.className = "grid-wrap";
         gridWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
-        
+
         var grid = document.createElement("div");
         grid.className = "grid";
-        
+
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
+            var pPrice = this.config.purchasePrice[i] || 0;
             var hashId = stock.hashCode();
             var gridItem = document.createElement("div");
             gridItem.className = "stock_item stock";
@@ -246,6 +331,21 @@ Module.register("MMM-AVStock", {
             var anchor = document.createElement("div");
             anchor.className = "anchor item_sect";
 
+            var purchase = document.createElement("div");
+            purchase.className = "anchor item_sect";
+
+            var purchasePrice = document.createElement("div");
+            purchasePrice.className = "purchasePrice";
+            purchasePrice.innerHTML = (this.config.purchasePrice[i]) ? this.formatNumber(this.config.purchasePrice[i], this.config.decimals) : "--",
+            purchasePrice.id = "grid_purchasePrice_" + hashId;
+
+            var purchaseChange = document.createElement("div");
+            purchaseChange.className = "purchaseChange";
+            purchaseChange.innerHTML = "--%";
+            purchaseChange.id = "grid_purchaseChange_" + hashId;
+
+
+
             if (this.config.showChart) {
                 gridItem.addEventListener("click", function() {
                     self.log("Clicked on " + self.config.symbols[i]);
@@ -257,12 +357,20 @@ Module.register("MMM-AVStock", {
             anchor.appendChild(change);
             anchor.appendChild(vol);
             gridItem.appendChild(anchor);
+
+            if (this.config.showPurchasePrices) {
+                purchase.appendChild(purchaseChange);
+                purchase.appendChild(purchasePrice);
+                gridItem.appendChild(purchase);
+            }
+
             grid.appendChild(gridItem);
         }
         gridWrapper.appendChild(grid);
         if (!this.config.showChart) gridWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(gridWrapper);
     },
+
 
     prepareTicker: function() {
         var wrapper = document.getElementById("AVSTOCK");
@@ -276,7 +384,7 @@ Module.register("MMM-AVStock", {
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
-            var pPrice = this.config.purchasePrice[i] || 1;
+            var pPrice = this.config.purchasePrice[i] || "--";
             var hashId = stock.hashCode();
             var tickerItem = document.createElement("div");
             tickerItem.className = "stock_item stock";
@@ -306,17 +414,17 @@ Module.register("MMM-AVStock", {
             anchor.className = "anchor item_sect";
 
             var purchase = document.createElement("div");
-            purchase.className = "purchase item_sect";
+            purchase.className = "anchor item_sect";
 
             var purchasePrice = document.createElement("div");
             purchasePrice.className = "purchasePrice";
-            purchasePrice.innerHTML = this.formatNumber(pPrice, this.config.decimals),
+            purchasePrice.innerHTML = (this.config.purchasePrice[i]) ? this.formatNumber(this.config.purchasePrice[i], this.config.decimals) : "--",
             purchasePrice.id = "purchasePrice_" + hashId;
 
             var purchaseChange = document.createElement("div");
             purchaseChange.className = "purchaseChange";
-            purchaseChange.innerHTML = this.formatNumber(0, 0) + "%";
-            purchaseChange.id = "purchaseChange_" + hashId;            
+            purchaseChange.innerHTML = "--%";
+            purchaseChange.id = "purchaseChange_" + hashId;
 
             if (this.config.showChart) {
                 tickerItem.addEventListener("click", function() {
@@ -343,8 +451,8 @@ Module.register("MMM-AVStock", {
         if (!this.config.showChart) tickerWrapper.appendChild(this.addTagLine());
         wrapper.appendChild(tickerWrapper);
     },
-    
-    
+
+
     addTagLine: function () {
         var tl = document.createElement("div");
         tl.className = "tagline";
@@ -387,7 +495,7 @@ Module.register("MMM-AVStock", {
         } else if (this.config.mode === "grid"){
             this.updateGrid(this.stocks[stock]);
         }
-        if (this.config.showChart) { 
+        if (this.config.showChart) {
             this.updateChart(this.stocks[stock]);
         }
     },
@@ -395,15 +503,13 @@ Module.register("MMM-AVStock", {
     updateTable: function(stock) {
         var hash = stock.quote.hash;
         var tr = document.getElementById("STOCK_" + hash);
-        var ud = "";
+        var ud = (stock.quote.up) ? "up" : "down"
         for (var j = 1 ; j < this.config.tableHeaders.length ; j++) {
             var tdId = this.config.tableHeaders[j] + "_" + hash;
             var td = document.getElementById(tdId);
             td.innerHTML = stock.quote[this.config.tableHeaders[j]];
             td.className = this.config.tableHeaders[j];
-            if (["change", "changeP"].includes(this.config.tableHeaders[j])) {
-                ud = (stock.quote.up) ? "up" : "down"
-            }
+            if (td.className == "perf2P") { td.classList.add((stock.quote.profit) ? "profit" : "loss"); }
         }
         tr.className = "animated stock_tr " + ud;
         var tl = document.getElementById("AVSTOCK_TAGLINE");
@@ -424,10 +530,20 @@ Module.register("MMM-AVStock", {
         vol.innerHTML = stock.quote.volume;
         var ud = (stock.quote.up) ? "up" : "down";
         gridItem.className = "animated stock_item stock_tr " + ud;
+        var ppd = (stock.quote.profit) ? "profit" : "loss";
+
+        if (this.config.showPurchasePrices) {
+            var purchasePriceTag = document.getElementById("grid_purchasePrice_" + hash);
+            purchasePriceTag.className = "purchasePrice";
+            var purchaseChangeTag = document.getElementById("grid_purchaseChange_" + hash);
+            purchaseChangeTag.innerHTML = stock.quote.perf2P || "--%";
+            purchaseChangeTag.className = "purchaseChange " + ppd;
+        }
+
         var tl = document.getElementById("AVSTOCK_TAGLINE");
         tl.innerHTML = "Last quote: " + stock.quote.date;
         setTimeout(()=>{
-            gridItem.className = "stock_item stock " + ud;
+            gridItem.className = "stock_item stock_tr " + ud;
         }, 1500);
     },
 
@@ -436,21 +552,17 @@ Module.register("MMM-AVStock", {
         var tr = document.getElementById("STOCK_" + hash);
         var priceTag = document.getElementById("price_" + hash);
         priceTag.innerHTML = stock.quote.price;
-        /*var changeTag = document.getElementById("change_" + hash);
-        changeTag.innerHTML = stock.quote.change;*/
         var changePTag = document.getElementById("changeP_" + hash);
         changePTag.innerHTML = stock.quote.changeP;
         var ud = (stock.quote.up) ? "up" : "down";
         tr.className = "animated stock_item stock_tr " + ud;
-        
+
         /* spitzlbergerj - Extension ticker with line with own purchase price and the display for profit and loss */
         var ppd = (stock.quote.profit) ? "profit" : "loss";
         if (this.config.showPurchasePrices) {
-            var purchasePriceTag = document.getElementById("purchasePrice_" + hash);
-            purchasePriceTag.className = "purchasePrice " + ppd;
             if (this.config.showPerformance2Purchase) {
                 var purchaseChangeTag = document.getElementById("purchaseChange_" + hash);
-                purchaseChangeTag.innerHTML = stock.quote.perf2P;
+                purchaseChangeTag.innerHTML = stock.quote.perf2P || "--%";
                 purchaseChangeTag.className = "purchaseChange " + ppd;
             }
         }
@@ -459,7 +571,7 @@ Module.register("MMM-AVStock", {
         var tl = document.getElementById("AVSTOCK_TAGLINE");
         tl.innerHTML = "Last quote: " + stock.quote.date;
         setTimeout(()=>{
-            tr.className = "stock_item stock " + ud;
+            tr.className = "stock_item stock_tr " + ud;
         }, 1500);
     },
 
@@ -468,6 +580,7 @@ Module.register("MMM-AVStock", {
         if (stock.ohlc && stock.quote) {
             //update header
             var head = document.getElementById("stockchart_head");
+            head.classList.remove("up","down");
             var ud = (stock.quote.up) ? "up" : "down";
             head.classList.add(ud);
             var symbolTag = document.getElementById("stockchart_symbol");
@@ -683,11 +796,11 @@ Module.register("MMM-AVStock", {
                     enabled: false,
                 },
             });
+            var tl = document.getElementById("AVSTOCK_TAGLINE");
+            tl.innerHTML = "Last quote: " + stock.quote.requestTime;
         } else {
             console.error("Not enough data to update chart!");
         }
-        var tl = document.getElementById("AVSTOCK_TAGLINE");
-        tl.innerHTML = "Last quote: " + stock.quote.requestTime;
     },
 
     getBarColors: function (stock) {
@@ -702,8 +815,9 @@ Module.register("MMM-AVStock", {
 
     formatQuotes: function(series) {
         var l = series.length-1;
-        var stockIndex = this.config.symbols.indexOf(series[l].smbol);
-        var pPrice = this.config.purchasePrice[stockIndex] || 1;
+        var stockIndex = this.config.symbols.indexOf(series[l].symbol);
+        var pPrice = this.config.purchasePrice[stockIndex] || 0;
+
         return {
             date: series[l].date,
             price: this.formatNumber(series[l].close, this.config.decimals),
@@ -718,10 +832,10 @@ Module.register("MMM-AVStock", {
             hash: series[l].hash,
             requestTime: series[l].requestTime,
             symbol: series[l].symbol,
-            pPrice: this.formatNumber(pPrice, this.config.decimals),
-            perf2P: this.formatNumber(1 - (series[l].close/pPrice), 1) + '%',
-            profit: (pPrice > series[l].close)
-        } 
+            pPrice: (pPrice > 0) ? this.formatNumber(pPrice, this.config.decimals) : '--',
+            perf2P: (pPrice > 0) ? this.formatNumber((100 - (series[l].close/pPrice)*100), 1) + '%' : '--',
+            profit: (pPrice < parseFloat(series[l].close))
+        }
     },
 
     formatOHLC: function(stockSeries) {

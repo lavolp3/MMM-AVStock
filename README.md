@@ -13,17 +13,22 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-grid.PNG)
 
 - `mode:ticker with own purchase prices`  
-![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
 
 - `mode:ticker with own purchase prices and total performance compared to the purchase price`  
-![ScreenShot for Ticker](https://raw.githubusercontent.com/spitzlbergerj/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
+![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
 
 
 ## UPDATES ##
 
+** 2.3.0 **
+- multi-table support. Use config option `maxTableRows` to show several table pages when symbol count exceeds maxTableRows.  
+- improved `direction` description.
+- added purchasePrice and perf2Purch to grid and table (thanks @spitzlbergerj)
+- improved ticker and grid styling
 
 ** 2.2.0 **
-- (by spitzlbergerj) within the ticker mode, a line with the own purchase price and the display for profit and loss is added. The performance compared to the own purchase price can be displayed too.
+- (by @spitzlbergerj) within the ticker mode, a line with the own purchase price and the display for profit and loss is added. The performance compared to the own purchase price can be displayed too.
 - changed width scheme, hopefully fixing #35 
 - optimized tagline, now showing once below chart or table/grid/ticker
 - code cleanup
@@ -90,12 +95,13 @@ I am working on an alternative API.
     config: {
         apiKey : "",
         timeFormat: "DD-MM HH:mm",
-        width: '100%',
+        width: null,
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
         locale: config.language,
         tickerDuration: 20,
         chartDays: 90,
+        maxTableRows: null,
         mode : "table",                  // "table" or "ticker"
         showChart: true,
         chartWidth: null,
@@ -143,13 +149,14 @@ I am working on an alternative API.
 | --- | --- | --- | --- |
 | `api_key` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
 | `mode` | string | 'table' | Use 'table' for table mode, 'ticker' for ticker mode, or 'grid' for a grid mode. |
-| `width` | integer | 400 | Width of every module element. Sets the distinctive width of table, ticker, chart, or grid. |
+| `width` | integer | null | Width of every module element. Sets the distinctive width of table, ticker, chart, or grid. If you keep this unchanged, width will be set to 100%. Apart from '100%', please use integer values! |
 | `classes` | string | 'small' | Set classes known from module classes (xsmall, small, bright, dimmed etc.) |
-| `direction` | string | 'row' | You can set `row` or `column`. setting row will place chart next to the table/grid/ticker as long as there is enough space available |
+| `direction` | string | 'row' | You can set `row` or `column`. setting row will place chart next to the table/grid/ticker as long as there is enough space available. **Only works with `width` option set to a value** |
 | `timeFormat` | string | 'DD-MM HH:mm' | Format of dates to be shown. Use moment.js format style here |
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
 | `alias` | array | [] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol name. |
-| `purchasePrice` | array | [123.45, 123.45, 123.45] | Array of own purchase prices |
+| `maxTableRows` | integer | null | Set maximum table rows to paginate table with more symbols than rows. |
+| `purchasePrice` | array | [] | Array of own purchase prices |
 | `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
 | `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
@@ -165,10 +172,14 @@ I am working on an alternative API.
 | `chartLineColor` | string | `#eee` | Color of line chart |
 | `chartLabelColor` | string | `#eee` | Color of chart labels |
 | `coloredCandles` | boolean | true | Whether to use colored candles or OHLC bars. |
-| `debug` | false | Debug mode: additional output on server side (console) and client side (browser) |
+| `debug` | boolean | false | Debug mode: additional output on server side (console) and client side (browser) |
 
 
 ## ToDo
 
 [ ] Use another API!
-[ ] Grid view
+[ ] Switch to Nunjucks template!
+[x] Grid view
+[ ] Support purchase Price in all modes
+[ ] Fix Volume bars (not showing correct colors due to highcharts' grouping function
+
