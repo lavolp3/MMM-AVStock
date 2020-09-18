@@ -91,7 +91,7 @@ I am working on an alternative API.
 ```javascript
 {
     module: "MMM-AVStock",
-    position: "top_right", //"bottom_bar" is better for `mode:ticker`
+    position: "top_left", //"bottom_bar" is better for `mode:ticker`
     config: {
         apiKey : "",
         timeFormat: "DD-MM HH:mm",
