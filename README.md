@@ -66,7 +66,7 @@ npm install
 To use all features of this module, you currently need two API keys. Both are free to use in the current setup.
 
 For up-to-date quotes you need an IEX Cloud API key
-https://cloud,iexapis.com/
+https://iexcloud.io/
 
 The free account has a quota limit of 50,000 calls per month. The module is designed to do one call per minute, depending on the amount of your stocks you get an update on every stock every x minutes.
 
@@ -160,7 +160,7 @@ Free account has a quota limit of 5 request per minute, 500 requests per day).
 | **Option** | **Type** | **Default** | **Description** |
 | --- | --- | --- | --- |
 | `apiKey` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
-| `iexKey` | string | '' | Your API Key obtained from <https://cloud.iexapis.com/> (limited to 50000 requests a month)|
+| `iexKey` | string | '' | Your API Key obtained from <https://iexcloud.io/> (limited to 50000 requests a month)|
 | `mode` | string | 'table' | Use 'table' for table mode, 'ticker' for ticker mode, or 'grid' for a grid mode. |
 | `width` | integer | null | Width of every module element. Sets the distinctive width of table, ticker, chart, or grid. If you keep this unchanged, width will be set to 100%. Apart from '100%', please use integer values! |
 | `classes` | string | 'small' | Set classes known from module classes (xsmall, small, bright, dimmed etc.) |
