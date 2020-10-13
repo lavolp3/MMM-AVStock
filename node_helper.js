@@ -1,7 +1,7 @@
 const request = require('request')
-const moment = require("moment")
+const moment = require('moment')
 
-var NodeHelper = require("node_helper")
+var NodeHelper = require('node_helper')
 
 String.prototype.hashCode = function() {
   var hash = 0
@@ -29,21 +29,24 @@ module.exports = NodeHelper.create({
         if (noti == "INIT" && !this.isRunning) {
             this.config = payload;
             this.alpha = require('alphavantage')({ key: this.config.apiKey });
-            console.log("[AVSTOCK] Initialized.");             
+            console.log("[AVSTOCK] Initialized.")
         } else if (noti == "GET_STOCKDATA") {
               //if ( moment().isAfter(moment(this.config.inactive[0], "HH:mm")) || moment().isBefore(moment(this.config.inactive[1], "HH:mm"))) {
               //  this.log("Inactivity time. No Api calls between "+this.config.inactive[0]+" and "+this.config.inactive[1]);
               //} else {
-            //var inactivity = moment.duration();  //NOT FINISHED
             this.config = payload;
+
             var callArray = this.prepareAPICalls();
             if (!this.isRunning) {
+                this.initialQuotes(this.config.symbols);
                 this.initialCalls(callArray);
                 this.isRunning = true
             } else {
                 clearInterval(this.rc);
-                this.initialCalls(callArray);
-                this.callAPI(callArray[0]);
+                this.regularCalls(callArray);
+                clearInterval(this.rq);
+                this.regularQuotes(this.config.symbols);
+                this.sendSocketNotification("UPDATE_STOCKS", this.stocks);
             }
         }
     },
@@ -52,13 +55,13 @@ module.exports = NodeHelper.create({
     prepareAPICalls: function(callArray) {
         var callArray = [];
         var conf = this.config;
-        var symbol, func, interval, maPeriod;
+        var symbol, func, maPeriod;
         var ma = conf.movingAverage;
         for (var s = 0; s < conf.symbols.length; s++) {
-            func =  (conf.mode == "series") ? conf.chartInterval : "daily";
+            func = (conf.mode == "series") ? conf.chartInterval : "daily";
             symbol = conf.symbols[s];
-            this.stocks[symbol]= {};
-            idInterval = (func == "intraday") ? conf.intraDayInterval : "";
+            this.stocks[symbol] = {};
+            var idInterval = (func == "intraday") ? conf.intraDayInterval : "";
             callArray.push({
                 symbol: symbol,
                 func: func,
@@ -68,12 +71,12 @@ module.exports = NodeHelper.create({
             this.stocks[symbol][func] = {};
             if (ma.type != "") {
                 this.stocks[symbol][ma.type] = {};
-                interval = conf.chartInterval;
+                var maInterval = conf.chartInterval;
                 for (m = 0; m < ma.periods.length; m++) {
                     callArray.push({
                         symbol: symbol,
                         func: "technical",
-                        interval: interval,
+                        interval: maInterval,
                         ma: [ma.type, ma.periods[m]]
                     });
                 }
@@ -81,14 +84,14 @@ module.exports = NodeHelper.create({
         }
         this.log("API Calls prepared...");
         this.log(callArray);
-        this.log(this.stocks);
+        //this.log(this.stocks);
         return callArray;
     },
 
 
     initialCalls: function(callArray) {
         this.log("Performing initial 15s calls...");
-        var interval = 15000;
+        var interval = 15 * 1000;
         this.callAPI(callArray[0]);
         var counter = 0;
         var self = this;
@@ -105,22 +108,55 @@ module.exports = NodeHelper.create({
         }, interval);
     },
 
-    
+
     regularCalls: function(callArray) {
         var counter = 0;
         this.log("Performing regular calls...");
-        var interval = Math.round((24 * 60 * 60 * 1000) / (450 - callArray.length));          //500 calls allowed in 24 hours
-        this.log("Interval: " + Math.round(interval/1000));
-        var self = this;
+        var interval = 120 * 1000;
         this.callAPI(callArray[0]);
+        var self = this;
         this.rc = setInterval(() => {
             counter = (counter == callArray.length-1) ? 0 : (counter + 1);
-            self.callAPI(callArray[counter]);
-            self.log("Counter: " + counter);
+            if (moment().isBetween(moment(this.config.activeHours[0], 'HH'), moment(this.config.activeHours[1], 'HH'))) {
+                self.callAPI(callArray[counter]);
+            }
         }, interval);
     },
 
-    
+
+    initialQuotes: function(symbols) {
+        this.log("Performing initial 5s quote calls...");
+        var interval = 5 * 1000;
+        this.callQuotes(symbols[0]);
+        var counter = 0;
+        var self = this;
+        var iq = setInterval(() => {
+            counter = counter + 1;
+            if (counter == symbols.length) {
+                this.log("Initial calls done...");
+                clearInterval(iq);
+                self.regularQuotes(symbols);
+            } else {
+                self.callQuotes(symbols[counter]);
+            }
+        }, interval);
+    },
+
+
+    regularQuotes: function(symbols) {
+        var counter = 0;
+        this.log("Performing regular quote calls...");
+        var interval = 60 * 1000;
+        this.callQuotes(symbols[0]);
+        var self = this;
+        this.rq = setInterval(() => {
+            counter = (counter == symbols.length-1) ? 0 : (counter + 1);
+            self.callQuotes(symbols[counter]);
+        }, interval);
+
+    },
+
+
     callAPI: function(callItem) {
         var func = callItem.func;
         var interval = callItem.interval;
@@ -152,38 +188,39 @@ module.exports = NodeHelper.create({
     },
 
 
+    callQuotes: function(symbol) {
+        this.log("Calling Quotes: Stock: " + symbol);
+        var iexToken = this.config.iexKey; // "Tsk_3be016b960c44c7f9989d433ec203882"
+        var url = "https://cloud.iexapis.com/stable/stock/" + symbol + "/quote?token=" + iexToken;
+        /*var url = "https://cloud.iexapis.com/stable/stock/"
+          + callItem.symbol
+          + "/chart?"
+          + "range=1m&"
+          //+ "chartCloseOnly=true&"
+          + "token=" + apiToken;*/
+        var self = this;
+        request(url, function (err, resp, body) {
+            if (err) {
+                throw new Error(err);
+            } else if (resp.statusCode < 400) {
+                var data = JSON.parse(body);
+                data.hash = symbol.hashCode();
+                self.sendSocketNotification("UPDATE_QUOTE", {
+                    symbol: symbol,
+                    data: data
+                });
+            } else {
+                console.error("MMM-AVStock API Error:" + JSON.stringify(resp));
+            }
+        });
+    },
+
+
     processData: function(data, callItem) {
         this.log("Processing API data...");
         var cfg = this.config;
         for (var key in data) {
-            if (key.includes("Global Quote")) {
-                this.log("Global Quote found for " + callItem.symbol);
-                var quote = data[key];
-                this.log(quote);
-                var result = {
-                    symbol: callItem.symbol,
-                    open: parseFloat(quote["02. open"]),
-                    high: parseFloat(quote["03. high"]),
-                    low: parseFloat(quote["04. low"]),
-                    price: parseFloat(quote["05. price"]),
-                    volume: parseInt(quote["06. volume"]),
-                    day: quote["07. latest trading day"],
-                    close: parseFloat(quote["08. previous close"]),
-                    change: parseFloat(quote["09. change"]),
-                    changeP: quote["09. change"]*100/quote["08. previous close"]+'%',
-                    up: (parseFloat(quote["09. change"]) > 0),
-                    requestTime: moment().format(cfg.timeFormat),
-                    hash: callItem.symbol.hashCode()
-                };
-                this.log(result);
-                this.log("Sending socket notification with result: " + JSON.stringify(result));
-                this.sendSocketNotification("UPDATE_QUOTE", {
-                    symbol: callItem.symbol, 
-                    func: callItem.func, 
-                    data: result 
-                });
-            } else if (key.includes("Time Series")) {
-                this.log("Time Series found...");
+            if (key.includes("Time Series")) {
                 var series = data[key];
                 var dayLimit = (cfg.chartDays > 90) ? 90 : cfg.chartDays;
                 var entries = Object.keys(series).slice(0, dayLimit);
@@ -208,13 +245,13 @@ module.exports = NodeHelper.create({
                 ts[0].change = ts[0].close - ts[1].close;
                 ts[0].changeP = ts[0].change*100/ts[1].close;
                 this.log("Sending Socket Notification for series...");
-                this.sendSocketNotification("UPDATE_STOCK", {
-                    symbol: callItem.symbol, 
-                    func: callItem.func, 
-                    data: ts 
+                this.sendSocketNotification("UPDATE_SERIES", {
+                    symbol: callItem.symbol,
+                    func: callItem.func,
+                    data: ts
                 });
             } else if (key.includes("Technical Analysis")) {
-                this.log("Technical analysis data found...");
+                //this.log("Technical analysis data found...");
                 var series = data[key];
                 var dayLimit = (cfg.chartDays > 90) ? 90 : cfg.chartDays;
                 var entries = Object.keys(series).slice(0, dayLimit);
@@ -227,17 +264,17 @@ module.exports = NodeHelper.create({
                     techSeries.push(item);
                 });
                 //this.log(techSeries);
-                this.log("Sending Socket Notification...");
+                this.log("Sending Socket Notification for technical...");
                 this.sendSocketNotification("UPDATE_TECH", {
-                    symbol: callItem.symbol, 
+                    symbol: callItem.symbol,
                     func: callItem.ma.join(''),
                     data: techSeries
                 });
             }
-        }             
-    }, 
-    
-      
+        }
+    },
+
+
     log: function (msg) {
         if (this.config && this.config.debug) {
             console.log(this.name + ": ", (msg));
