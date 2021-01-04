@@ -42,6 +42,7 @@ Module.register("MMM-AVStock", {
         decimals : 2,
         activeHours: [8, 22],
         chartType: 'line',
+        pureLine: false,
         chartNavigator: false,
         chartLineColor: '#eee',
         chartLabelColor: '#eee',
@@ -614,7 +615,7 @@ Module.register("MMM-AVStock", {
                     }
                 }
             ];
-            if (this.config.showVolume) {
+            if (this.config.showVolume && !this.config.pureLine) {
                 stockSeries.push({
                     type: 'column',
                     name: 'Volume',
@@ -681,11 +682,13 @@ Module.register("MMM-AVStock", {
 
                 yAxis: [
                     {
+                        visible: !this.config.pureLine,
                         labels: {
+                            enabled: !this.config.pureLine,
                             align: 'right',
                             x: -8,
                             formatter: function () {
-                                return (this.value < 10) ? this.value.toFixed(2) : this.value.toFixed(0); 
+                                return (this.value < 10) ? this.value.toFixed(2) : this.value.toFixed(0);
                             },
                             style: {
                                 fontSize: '16px',
@@ -697,14 +700,16 @@ Module.register("MMM-AVStock", {
                         },
                         alternateGridColor: '#223344',
                         gridLineDashStyle: 'longDash',
-                        height: (this.config.showVolume) ? '72%' : '100%',
+                        height: (this.config.showVolume && !this.config.pureLine) ? '72%' : '100%',
                         lineColor: this.config.chartLineColor,
-                        lineWidth: 2,
+                        lineWidth: (this.config.pureLine) ? 0 : 2,
+                        gridLineWidth: (this.config.pureLine) ? 0 : 1,
                         resize: {
                             enabled: true
                         }
-                    }, 
+                    },
                     {
+                        visible: !this.config.pureLine,
                         labels: {
                             align: 'right',
                             x: -8,
@@ -717,8 +722,8 @@ Module.register("MMM-AVStock", {
                         title: {
                             //text: 'Volume'
                         },
-                        top: (this.config.showVolume) ? '73%' : '100%',
-                        height: (this.config.showVolume) ? '27%' : '0%',
+                        top: (this.config.showVolume && !this.config.pureLine) ? '73%' : '100%',
+                        height: (this.config.showVolume && !this.config.pureLine) ? '27%' : '0%',
                         offset: 0,
                         //lineWidth: 2
                     }
@@ -726,6 +731,7 @@ Module.register("MMM-AVStock", {
 
                 xAxis: [
                     {
+                        visible: !this.config.pureLine,
                         type: 'datetime',
                         labels: {
                             style: {

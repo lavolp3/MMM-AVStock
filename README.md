@@ -21,6 +21,9 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 ## UPDATES ##
 
+** 2.3.1 **
+- included `pureLine` option to remove axes and gridlines
+
 ** 2.3.0 **
 - multi-table support. Use config option `maxTableRows` to show several table pages when symbol count exceeds maxTableRows.  
 - improved `direction` description.
@@ -104,6 +107,7 @@ I am working on an alternative API.
         maxTableRows: null,
         mode : "table",                  // "table" or "ticker"
         showChart: true,
+        pureLine: false,
         chartWidth: null,
         showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
@@ -163,6 +167,7 @@ I am working on an alternative API.
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
 | `showChart` | boolean | true | Whether to show the chart. |
+| `pureLine` | boolean | false | Set `true` to remove axes and gridlines (and volume) to show a pure line (or candlesticks) |
 | `chartWidth` | integer | null | Determines width of chart, separate from overall width above |
 | `chartInterval` | string | 'daily' | Chart interval. Currently only daily supported! |
 | `showVolume` | boolean | true | Show volume bars in the chart. |
