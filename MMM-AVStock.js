@@ -16,7 +16,7 @@ String.prototype.hashCode = function() {
 Module.register("MMM-AVStock", {
     defaults: {
         apiKey : "",
-        iexKey: "sk_30ebb29f49304c28892a049709d9ebed",
+        iexKey: "",
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: [],
