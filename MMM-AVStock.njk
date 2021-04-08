@@ -1,0 +1,94 @@
+<div id="AVSTOCK" class="{{ config.classes }}" style="flex-direction: {{config.direction }}">
+<!--<header class="module-header" width="100%">STOCKS</header>-->
+	
+{% if loading %}
+
+	{{'LOADING' | translate}}
+
+{% else %}
+
+
+	{% if config.mode == "table" %}
+		<div style="width: {{ width }}">
+            <table id="AVSTOCK_TABLE">
+                <thead>
+                    <tr>
+                        {% for i in range(0, config.tableHeaders.length) -%}
+                        <td class="{{ config.tableHeaders[i] }}">{{ config.tableHeaderTitles[i] }}</td>
+                        {%- endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set cy = cycler("#333", "#000") %}
+                    {% for stock in config.symbols %}
+                    <tr style="background-color: {{ cy.next() }}" class="stock_tr  {{ stocks.quotes[stock]["up"] }}" id="stock_{{ stock }}">
+                        {% for header in config.tableHeaders %}
+                        <td class="stock_td {{ header }} {{ stock }}"> {{ stocks.quotes[stock][header] }} </td>
+                        {% endfor %}
+                    </tr>
+                    {%- endfor %}
+                </tbody>
+            </table>             
+		</div>
+    
+    {% elif config.mode == "grid" %}
+		<div class="grid-wrap" style="width: {{ width }}">
+            <div class="grid">
+            {% for i in range(0, config.symbols.length) -%}
+                <div class="stock_item stock" id="grid_STOCK_{{ config.symbols[i] }}">
+                    <div class="symbol item_sect" id="grid_symbol_{{ config.symbols[i] }}">{{ config.symbols[i] }}</div>
+                    <div class="price" id="grid_price_{{ config.symbols[i] }}">---</div>
+                    <div class="anchor item_sect">
+                        <div class="change" id="grid_change_{{ config.symbols[i] }}">---</div>
+                        <div class="volume xsmall" id="grid_volume_{{ config.symbols[i] }}">---</div>
+                    </div>
+                    {% if config.showPurchasePrices %}
+                        <div class="purchase anchor item_sect">
+                            <div class="purchasePrice" id="grid_purchasePrice_{{ config.symbols[i] }}">config.purchasePrice[i]</div>
+                            <div class="purchaseChange" id="grid_purchaseChange_{{ config.symbols[i] }}">--%</div>
+                        </div>
+                    {% endif %}
+                </div>
+            {%- endfor %}
+            </div>
+		</div>
+
+    {% elif config.mode == "ticker" %}    
+        <div class="ticker-wrap" style="width: {{ width }}">
+            <div id="ticker" style="animation-duration: {{ config.tickerDuration }}s; width: {{ config.symbols.length * 160 }}px">
+            {% for i in range(0, config.symbols.length) -%}
+                <div class="stock_item stock" id="STOCK_{{ config.symbols[i] }}">
+                    <div class="symbol item_sect" id="symbol_{{ config.symbols[i] }}">{{ config.symbols[i] }}</div>
+                    <div class="anchor item_sect">
+                        <div class="price" id="price_{{ config.symbols[i] }}">--</div>
+                        <div class="change" id="change_{{ config.symbols[i] }}">---</div>
+                        <div class="changeP" id="changeP_{{ config.symbols[i] }}">---</div>                    
+                    </div>
+                    {% if config.showPurchasePrices %}
+                        <div class="purchase anchor item_sect">
+                            <div class="purchasePrice" id="grid_purchasePrice_{{ config.symbols[i] }}">config.purchasePrice[i]</div>
+                            <div class="purchaseChange" id="grid_purchaseChange_{{ config.symbols[i] }}">--%</div>
+                        </div>
+                    {% endif %}                    
+            {%- endfor %}
+            </div>
+        </div>
+    {% endif %}
+    
+    {%if config.showChart %}
+        <div class="chartWrapper" style="width: {{ width }}">
+            <div class="head anchor" id="stockchart_head">
+                <div class="symbol item_sect" id="stockchart_symbol" style="margin-right: 10px">---</div>
+                <div class="price item_sect" id="stockchart_price">---</div>
+                <div class="changeP item_sect" id="stockchart_changeP">--%</div>
+            </div>
+            <div id="AVSTOCK_CHART" style="width: {{ width }}, height: {{ config.height }}px">                
+            </div>
+        </div>
+    {% endif %}
+
+    
+    <div class="tagline" id="AVSTOCK_TAGLINE">Last quote:</div>
+    
+{% endif %}
+</div>

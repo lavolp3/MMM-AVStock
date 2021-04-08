@@ -1,5 +1,6 @@
-const request = require('request')
-const moment = require("moment")
+const request = require('request');
+const moment = require("moment");
+const yfinance = require('yahoo-finance');
 
 var NodeHelper = require("node_helper")
 
@@ -28,7 +29,7 @@ module.exports = NodeHelper.create({
     socketNotificationReceived: function(noti, payload) {
         if (noti == "INIT" && !this.isRunning) {
             this.config = payload;
-            this.alpha = require('alphavantage')({ key: this.config.apiKey });
+            //this.alpha = require('alphavantage')({ key: this.config.apiKey });
             console.log("[AVSTOCK] Initialized.");             
         } else if (noti == "GET_STOCKDATA") {
               //if ( moment().isAfter(moment(this.config.inactive[0], "HH:mm")) || moment().isBefore(moment(this.config.inactive[1], "HH:mm"))) {
@@ -36,15 +37,23 @@ module.exports = NodeHelper.create({
               //} else {
             //var inactivity = moment.duration();  //NOT FINISHED
             this.config = payload;
-            var callArray = this.prepareAPICalls();
-            if (!this.isRunning) {
+            //var callArray = this.prepareAPICalls();
+            /*if (!this.isRunning) {
                 this.initialCalls(callArray);
                 this.isRunning = true
             } else {
                 clearInterval(this.rc);
                 this.initialCalls(callArray);
                 this.callAPI(callArray[0]);
-            }
+            }*/
+            this.callAPI(this.config.symbols);
+            this.log("Performing regular calls...");
+            var interval = this.config.callInterval          //500 calls allowed in 24 hours
+            this.log("Interval: " + Math.round(interval/1000));
+            var self = this;
+            setInterval(() => {
+                self.callAPI(this.config.symbols);
+            }, interval);
         }
     },
 
@@ -85,26 +94,6 @@ module.exports = NodeHelper.create({
         return callArray;
     },
 
-
-    initialCalls: function(callArray) {
-        this.log("Performing initial 15s calls...");
-        var interval = 15000;
-        this.callAPI(callArray[0]);
-        var counter = 0;
-        var self = this;
-        var ic = setInterval(() => {
-            counter = counter + 1;
-            if (counter == callArray.length) {
-                this.log("Initial calls done...");
-                clearInterval(ic);
-                self.initial = false;
-                self.regularCalls(callArray);
-            } else {
-                self.callAPI(callArray[counter]);
-            }
-        }, interval);
-    },
-
     
     regularCalls: function(callArray) {
         var counter = 0;
@@ -121,11 +110,11 @@ module.exports = NodeHelper.create({
     },
 
     
-    callAPI: function(callItem) {
-        var func = callItem.func;
-        var interval = callItem.interval;
-        this.log("Calling API: " + func + ", stock: " + callItem.symbol);
-        if (["daily", "weekly", "monthly", "intraday", "quote"].includes(func)) {
+    callAPI: function(symbols) {
+        //var func = callItem.func;
+        //var interval = callItem.interval;
+        //this.log("Calling API: " + func + ", stock: " + callItem.symbol);
+        /*if (["daily", "weekly", "monthly", "intraday", "quote"].includes(func)) {
             if (func == "intraday") {
                 this.alpha.data[func](callItem.symbol, "compact", "json", callItem.interval)
                 .then(data => {
@@ -148,7 +137,30 @@ module.exports = NodeHelper.create({
             .then(data => {
                 this.processData(data, callItem);
             });
-        }
+        }*/
+        var self = this;
+        yfinance.quote({
+            symbols: symbols,
+            modules: ['price']
+        }, function(err, quotes) {
+            if (err) {
+                console.error(err)
+            }
+            self.log(quotes);
+            self.sendSocketNotification("UPDATE_QUOTES", quotes);
+        });
+        yfinance.historical({
+            symbols: symbols,
+            from: moment().subtract(30, 'days').format('YYYY-MM-DD'),
+            to: moment().format('YYYY-MM-DD'),
+        }, function(err, quotes) {
+            if (err) {
+                console.error(err)
+            } else {
+                //self.log(quotes);
+                self.sendSocketNotification("UPDATE_HIST", quotes);
+            }
+        });
     },
 
 
