@@ -21,6 +21,12 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 ## UPDATES ##
 
+** 3.0.0 **
+- included yfinance for quote data (no login necessary
+- kept alphavantage (via npm module for tech and historical data
+- new DOM creation methods, should be more flexible now.
+- changed tableHeader and tableHeaderTitles config outlay
+
 ** 2.3.1 **
 - included `pureLine` option to remove axes and gridlines
 
