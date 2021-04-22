@@ -3,19 +3,19 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 
 ## Screenshot
-- `mode:table`  
+- `mode:table`
 ![ScreenShot for Table](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-table.PNG)
 
-- `mode:ticker`  
+- `mode:ticker`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
 
-- `mode:grid` with `direction:'row'`   
+- `mode:grid` with `direction:'row'`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-grid.PNG)
 
-- `mode:ticker with own purchase prices`  
+- `mode:ticker with own purchase prices`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
 
-- `mode:ticker with own purchase prices and total performance compared to the purchase price`  
+- `mode:ticker with own purchase prices and total performance compared to the purchase price`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
 
 
@@ -188,9 +188,8 @@ I am working on an alternative API.
 
 ## ToDo
 
-[ ] Use another API!
-[ ] Switch to Nunjucks template!
+[x] Use another API!
 [x] Grid view
-[ ] Support purchase Price in all modes
+[x] Support purchase Price in all modes
 [ ] Fix Volume bars (not showing correct colors due to highcharts' grouping function
 

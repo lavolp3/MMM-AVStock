@@ -14,7 +14,16 @@ Module.register("MMM-AVStock", {
         tickerDuration: 20,
         chartDays: 90,
         tableHeaders: ["symbol", "price", "close", "change", "changeP", "pPrice", "perf2P", "volume"],
-        tableHeaderTitles: {symbol: "Symbol", price: "Price", close: "Close", change: "CHG", changeP: "CHG%", pPrice: "Purch", perf2P: "Profit", volume: "Vol"},
+        tableHeaderTitles: {
+            symbol: "Symbol", 
+            price: "Price", 
+            close: "Close", 
+            change: "CHG", 
+            changeP: "CHG%", 
+            pPrice: "Purch", 
+            perf2P: "Profit", 
+            volume: "Vol"
+        },
         maxTableRows: null,
         showChart: true,
         chartWidth: null,
@@ -67,7 +76,6 @@ Module.register("MMM-AVStock", {
     notificationReceived: function(noti, payload) {
         if (noti == "DOM_OBJECTS_CREATED") {
             this.sendSocketNotification("GET_STOCKDATA", this.config);
-            //this.prepare();
         }
     },
 
@@ -181,10 +189,10 @@ Module.register("MMM-AVStock", {
             price.innerHTML = this.getStockData(stock, "price");
             price.id = mode + "_price_" + stock;
             
-            var close = document.createElement("div");
-            close.className = "close";
-            close.innerHTML = this.getStockData(stock, "close");
-            close.id = mode + "_close_" + stock;
+            var prevClose = document.createElement("div");
+            prevClose.className = "close";
+            prevClose.innerHTML = this.getStockData(stock, "prevClose");
+            prevClose.id = mode + "_close_" + stock;
 
             var anchor1 = document.createElement("div");
             anchor1.className = "anchor item_sect";
@@ -239,7 +247,7 @@ Module.register("MMM-AVStock", {
                     if (i % 2 != 0) item.style.backgroundColor = '#333';
                     item.appendChild(symbol);
                     item.appendChild(price);
-                    item.appendChild(close);
+                    item.appendChild(prevClose);
                     item.appendChild(change);
                     item.appendChild(changeP);
                     if (this.config.showPurchasePrices) {
@@ -284,6 +292,8 @@ Module.register("MMM-AVStock", {
             wrapper.appendChild(elWrapper);
         }
         
+        wrapper.appendChild(this.addTagLine());
+        
         if (this.config.showChart) {
             var chartWrapper = document.createElement("div");
             chartWrapper.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
@@ -320,8 +330,17 @@ Module.register("MMM-AVStock", {
             chartWrapper.appendChild(stockChart);
             wrapper.appendChild(chartWrapper);
         }
-        //if (!this.config.showChart) gridWrapper.appendChild(this.addTagLine());
         return wrapper;
+    },
+    
+    
+    addTagLine: function () {
+        var tl = document.createElement("div");
+        tl.className = "tagline";
+        tl.style.width = (this.config.width == null) ? '100%' : this.config.width + 'px';
+        tl.id = "AVSTOCK_TAGLINE";
+        tl.innerHTML = "Last quote: " + (moment(this.updateTime, "x").format(this.config.timeFormat) || "---")
+        return tl;
     },
 
 
@@ -331,21 +350,33 @@ Module.register("MMM-AVStock", {
             var item = document.getElementById(mode + "_stock_" + stock);
             item.className = "stock_item stock " + this.getStockData(stock, "up"); 
             
-            var symbol = document.getElementById(mode + "_symbol_" + stock)
+            var symbol = document.getElementById(mode + "_symbol_" + stock);
             symbol.innerHTML = this.getStockName(stock);
 
-            var price = document.getElementById(mode + "_price_" + stock)
-            price.innerHTML = this.getStockData(stock, "price")
+            var price = document.getElementById(mode + "_price_" + stock);
+            price.innerHTML = this.getStockData(stock, "price");
             
-            var changeP = document.getElementById(mode + "_changeP_" + stock)
+            var price = document.getElementById(mode + "_price_" + stock);
+            price.innerHTML = this.getStockData(stock, "price");
+            
+            var changeP = document.getElementById(mode + "_changeP_" + stock);
             changeP.innerHTML = this.getStockData(stock, "changeP");
             
-            var change = document.getElementById(mode + "_change_" + stock)
+            var change = document.getElementById(mode + "_change_" + stock);
             change.innerHTML = this.getStockData(stock, "change");
             
+            if (mode == "table") {
+                var prevClose = document.getElementById(mode + "_close_" + stock);
+                prevClose.innerHTML = this.getStockData(stock, "prevClose");
+            };
+            
             if (mode != "ticker") {
-                var vol = document.getElementById(mode + "_volume_" + stock)
+                var vol = document.getElementById(mode + "_volume_" + stock);
                 vol.innerHTML = this.getStockData(stock, "volume");
+            }
+            if (this.config.showPerformance2Purchase) {
+                var perf2P = document.getElementById(mode + "__purchaseChange_" + stock);
+                perf2P.innerHTML = this.getStockData(stock, "perf2P");
             }
         }
     },
@@ -388,6 +419,7 @@ Module.register("MMM-AVStock", {
 
     formatQuotes: function(data) {
         var quotes = {};
+        this.updateTime = 0;
         for (var stock in data) {
             var stockData = data[stock].price;
             var stockIndex = this.config.symbols.indexOf(stock);
@@ -399,7 +431,7 @@ Module.register("MMM-AVStock", {
                 open: this.formatNumber(stockData.regularMarketOpen, this.config.decimals),
                 high: this.formatNumber(stockData.regularMarketDayHigh, this.config.decimals),
                 low: this.formatNumber(stockData.regularMarketDayLow, this.config.decimals),
-                close: this.formatNumber(stockData.regularMarketPreviousClose, this.config.decimals),
+                prevClose: this.formatNumber(stockData.regularMarketPreviousClose, this.config.decimals),
                 change: this.formatNumber(stockData.regularMarketPrice - stockData.regularMarketPreviousClose, this.config.decimals),
                 changeP: this.formatNumber((stockData.regularMarketPrice - stockData.regularMarketPreviousClose)/stockData.regularMarketPreviousClose * 100, 1) + "%",
                 volume: this.formatVolume(stockData.regularMarketVolume, 0),
@@ -410,6 +442,7 @@ Module.register("MMM-AVStock", {
                 profit: (pPrice < stockData.regularMarketPreviousClose)
             }
             quotes[stock] = stockQuote;
+            this.updateTime = Math.max(stockQuote.date, this.updateTime);
         }
         this.log(quotes);
         return quotes
@@ -589,6 +622,7 @@ Module.register("MMM-AVStock", {
                         labels: {
                             enabled: !this.config.pureLine,
                             align: 'right',
+                            lineWidth: 0,
                             x: -8,
                             formatter: function () {
                                 return (this.value < 10) ? this.value.toFixed(2) : this.value.toFixed(0);
