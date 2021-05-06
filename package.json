@@ -17,6 +17,6 @@
   },
   "dependencies": {
     "alphavantage": "^1.1.1",
-    "highcharts": "^8.1.2"
+    "highcharts": "^9.0.0"
   }
 }
