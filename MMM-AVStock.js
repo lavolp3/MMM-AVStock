@@ -16,6 +16,7 @@ String.prototype.hashCode = function() {
 Module.register("MMM-AVStock", {
     defaults: {
         apiKey : "",
+        iexKey: "",
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: [],
@@ -40,7 +41,7 @@ Module.register("MMM-AVStock", {
             periods: [200]
         },
         decimals : 2,
-        activeHours: [8, 22],
+        activeHours: [8, 23],
         chartType: 'line',
         pureLine: false,
         chartNavigator: false,
@@ -56,7 +57,7 @@ Module.register("MMM-AVStock", {
     getScripts: function() {
         return [
             this.file("node_modules/highcharts/highstock.js"),
-            this.file("node_modules/highcharts/modules/no-data-to-display.js")
+            //this.file("node_modules/highcharts/modules/no-data-to-display.js")
         ];
     },
 
@@ -466,14 +467,13 @@ Module.register("MMM-AVStock", {
     socketNotificationReceived: function(noti, payload) {
         this.log("Notification received: "+noti);
         if (noti == "UPDATE_QUOTE") {
-            this.stocks[payload.symbol]["quote"] = payload.data;
-            this.update(payload.symbol);
-        } else if (noti == "UPDATE_STOCK") {
-            //this.stocks[payload.symbol]["series"] = payload.data;
-            this.stocks[payload.symbol]["ohlc"] = this.formatOHLC(payload.data);
             this.stocks[payload.symbol]["quote"] = this.formatQuotes(payload.data);
             this.update(payload.symbol);
-            if (!this.loaded) { 
+        } else if (noti == "UPDATE_SERIES") {
+            //this.stocks[payload.symbol]["series"] = payload.data;
+            this.stocks[payload.symbol]["ohlc"] = this.formatOHLC(payload.data);
+            this.update(payload.symbol);
+            if (!this.loaded) {
                 this.loaded = true;
                 /*this.updateChart(this.config.symbols[0])
                 var self = this;
@@ -483,7 +483,12 @@ Module.register("MMM-AVStock", {
             }
         } else if (noti == "UPDATE_TECH") {
             this.stocks[payload.symbol][payload.func] = payload.data.reverse();
-        }
+        } /*else if (noti == "UPDATE_STOCKS") {
+            for (var stock in payload) {
+                this.stocks[stock]["quote"] = this.formatQuotes(payload[stock]["quote"]);
+                this.stocks[stock]["ohlc"] = this.formatOHLC(payload[stock]["series"]);
+            }
+        }*/
         this.log("Stock updated!");
         this.log(JSON.stringify(this.stocks));
     },
@@ -514,7 +519,7 @@ Module.register("MMM-AVStock", {
         }
         tr.className = "animated stock_tr " + ud;
         var tl = document.getElementById("AVSTOCK_TAGLINE");
-        tl.innerHTML = "Last quote: " + stock.quote.requestTime;
+        tl.innerHTML = "Last quote: " + stock.quote.symbol + " - " + stock.quote.requestTime;
         setTimeout(() => {
             tr.className = "stock_tr " + ud;
         }, 1500);
@@ -578,7 +583,7 @@ Module.register("MMM-AVStock", {
 
     updateChart: function(stock) {
 
-        if (stock.ohlc && stock.quote) {
+        if (stock.ohlc) {
             //update header
             var head = document.getElementById("stockchart_head");
             head.classList.remove("up","down");
@@ -805,7 +810,7 @@ Module.register("MMM-AVStock", {
             var tl = document.getElementById("AVSTOCK_TAGLINE");
             tl.innerHTML = "Last quote: " + stock.quote.requestTime;
         } else {
-            console.error("Not enough data to update chart!");
+            console.error("[MMM-AVStock] Not enough data to update chart!");
         }
     },
 
@@ -819,28 +824,27 @@ Module.register("MMM-AVStock", {
         return colors;
     },
 
-    formatQuotes: function(series) {
-        var l = series.length-1;
-        var stockIndex = this.config.symbols.indexOf(series[l].symbol);
+    formatQuotes: function(data) {
+        var stockIndex = this.config.symbols.indexOf(data.symbol);
         var pPrice = this.config.purchasePrice[stockIndex] || 0;
 
         return {
-            date: series[l].date,
-            price: this.formatNumber(series[l].close, this.config.decimals),
-            open: this.formatNumber(series[l].open, this.config.decimals),
-            high: this.formatNumber(series[l].high, this.config.decimals),
-            low: this.formatNumber(series[l].low, this.config.decimals),
-            close: this.formatNumber(series[l-1].close, this.config.decimals),
-            change: this.formatNumber(series[l].change, this.config.decimals),
-            changeP: this.formatNumber(series[l].changeP, 1) + '%',
-            volume: this.formatVolume(series[l].volume, 1),
-            up: series[l].up,
-            hash: series[l].hash,
-            requestTime: series[l].requestTime,
-            symbol: series[l].symbol,
+            date: data.latestTime,
+            price: this.formatNumber(data.latestPrice, this.config.decimals),
+            open: this.formatNumber(data.open, this.config.decimals),
+            high: this.formatNumber(data.high, this.config.decimals),
+            low: this.formatNumber(data.low, this.config.decimals),
+            close: this.formatNumber(data.previousClose, this.config.decimals),
+            change: this.formatNumber(data.change, this.config.decimals),
+            changeP: this.formatNumber(data.changePercent*100, 1) + '%',
+            volume: this.formatVolume(data.volume, 1),
+            up: (data.latestPrice > data.previousClose),
+            hash: data.hash,
+            requestTime: moment(data.latestUpdate, 'x').format(this.config.timeFormat),
+            symbol: data.symbol,
             pPrice: (pPrice > 0) ? this.formatNumber(pPrice, this.config.decimals) : '--',
-            perf2P: (pPrice > 0) ? this.formatNumber((100 - (series[l].close/pPrice)*100), 1) + '%' : '--',
-            profit: (pPrice < parseFloat(series[l].close))
+            perf2P: (pPrice > 0) ? this.formatNumber((100 - (data.latestPrice/pPrice)*100), 1) + '%' : '--',
+            profit: (pPrice < data.latestPrice)
         }
     },
 
@@ -851,7 +855,6 @@ Module.register("MMM-AVStock", {
             volume: []
         };
         var series = stockSeries.reverse();
-        this.log("Series for Chart: "+series)
         for (var i = 0; i < series.length; i++) {
             ohlc.values.push([
                 parseInt(moment(series[i].date).format("x")), // the date

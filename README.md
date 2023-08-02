@@ -9,17 +9,20 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 - `mode:ticker`  
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker.PNG)
 
-- `mode:grid` with `direction:'row'`   
+- `mode:grid` with `direction:'row'`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-grid.PNG)
 
-- `mode:ticker with own purchase prices`  
+- `mode:ticker with own purchase prices`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker-purchasePrices.jpg) 
 
-- `mode:ticker with own purchase prices and total performance compared to the purchase price`  
+- `mode:ticker with own purchase prices and total performance compared to the purchase price`
 ![ScreenShot for Ticker](https://raw.githubusercontent.com/lavolp3/MMM-AVStock/master/avstock-ticker-purchase-performace.jpg) 
 
 
 ## UPDATES ##
+
+** 2.4.0 **
+- included new API IEX Cloud to support real-timeor 15 min delayed quotes
 
 ** 2.3.1 **
 - included `pureLine` option to remove axes and gridlines
@@ -61,14 +64,20 @@ cd MMM-AVStock
 npm install
 ```
 
-## Alphavantage Key
+## API Keys
+
+To use all features of this module, you currently need two API keys. Both are free to use in the current setup.
+
+For up-to-date quotes you need an IEX Cloud API key
+https://iexcloud.io/
+
+The free account has a quota limit of 50,000 calls per month. The module is designed to do one call per minute, depending on the amount of your stocks you get an update on every stock every x minutes.
+
+If you also want to use charts (`showChart: true`) you need an alphavantage API key.
 Get your free API key here:
 https://www.alphavantage.co/
 
-Free account has a limit of quota (5 request per minute, 500 requests per day).  
-Over the time Alphavantahge has shown to be unreliable, since more and more stocks and function got excluded.  
-Currently several users (including me) only get stock data for the previous day.   
-I am working on an alternative API.  
+Free account has a quota limit of 5 request per minute, 500 requests per day).
 
 
 
@@ -83,6 +92,7 @@ I am working on an alternative API.
   position: "top_left",
   config: {
     apiKey : "YOUR_ALPHAVANTAGE_KEY",
+    iexKey: "YOUR_IEX_KEY",
     symbols : ["AAPL", "GOOGL", "TSLA"],
     alias: ["APPLE", "GOOGLE", "TESLA"],
   }
@@ -97,6 +107,7 @@ I am working on an alternative API.
     position: "top_left", //"bottom_bar" is better for `mode:ticker`
     config: {
         apiKey : "",
+        iexKey: "",
         timeFormat: "DD-MM HH:mm",
         width: null,
         symbols : ["AAPL", "GOOGL", "TSLA"],
@@ -132,7 +143,8 @@ I am working on an alternative API.
     module: "MMM-AVStock",
     position: "bottom_bar",
     config: {
-        apiKey : "",{
+        apiKey : "",
+        iexKey: "",
         mode : "ticker",
         symbols : ["TL0.F","AMZN","MSFT"],
         alias: ["Tesla","Amazon","Microsoft"],
@@ -151,7 +163,8 @@ I am working on an alternative API.
 
 | **Option** | **Type** | **Default** | **Description** |
 | --- | --- | --- | --- |
-| `api_key` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
+| `apiKey` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
+| `iexKey` | string | '' | Your API Key obtained from <https://iexcloud.io/> (limited to 50000 requests a month)|
 | `mode` | string | 'table' | Use 'table' for table mode, 'ticker' for ticker mode, or 'grid' for a grid mode. |
 | `width` | integer | null | Width of every module element. Sets the distinctive width of table, ticker, chart, or grid. If you keep this unchanged, width will be set to 100%. Apart from '100%', please use integer values! |
 | `classes` | string | 'small' | Set classes known from module classes (xsmall, small, bright, dimmed etc.) |
@@ -182,9 +195,9 @@ I am working on an alternative API.
 
 ## ToDo
 
-[ ] Use another API!
+[x] Use another API!
 [ ] Switch to Nunjucks template!
 [x] Grid view
-[ ] Support purchase Price in all modes
+[x] Support purchase Price in all modes
 [ ] Fix Volume bars (not showing correct colors due to highcharts' grouping function
 
