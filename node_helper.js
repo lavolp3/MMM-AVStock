@@ -1,4 +1,3 @@
-const request = require('request')
 const moment = require("moment")
 
 var NodeHelper = require("node_helper")
@@ -135,6 +134,7 @@ module.exports = NodeHelper.create({
                     console.error("[MMM-AVStock] ERROR: " + JSON.stringify(error));
                 });
             } else {
+                //if (func == "daily") func = "daily_adjusted"; 
                 this.alpha.data[func](callItem.symbol, "compact", "json")
                 .then(data => {
                     this.processData(data, callItem);
