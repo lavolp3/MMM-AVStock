@@ -29,7 +29,7 @@ module.exports = NodeHelper.create({
         if (noti == "INIT" && !this.isRunning) {
             this.config = payload;
             //this.alpha = require('alphavantage')({ key: this.config.apiKey });
-            console.log("[AVSTOCK] Initialized.");             
+            console.log("[AVSTOCK] Initialized.");
         } else if (noti == "GET_STOCKDATA") {
             this.config = payload;
             this.log("Performing stock API calls...");
