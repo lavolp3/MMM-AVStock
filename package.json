@@ -18,7 +18,6 @@
   "dependencies": {
     "alphavantage": "^2.4.1",
     "highcharts": "^9.0.0",
-    "yahoo-finance": "^0.3.7",
     "yahoo-finance2": "^2.4.3"
   }
 }
