@@ -1,4 +1,5 @@
-const moment = require("moment")
+const yfinance2 = require('yahoo-finance2').default;
+const moment = require('moment');
 
 var NodeHelper = require("node_helper")
 
@@ -27,23 +28,19 @@ module.exports = NodeHelper.create({
     socketNotificationReceived: function(noti, payload) {
         if (noti == "INIT" && !this.isRunning) {
             this.config = payload;
-            this.alpha = require('alphavantage')({ key: this.config.apiKey });
-            console.log("[AVSTOCK] Initialized.");             
+            //this.alpha = require('alphavantage')({ key: this.config.apiKey });
+            console.log("[AVSTOCK] Initialized.");
         } else if (noti == "GET_STOCKDATA") {
-              //if ( moment().isAfter(moment(this.config.inactive[0], "HH:mm")) || moment().isBefore(moment(this.config.inactive[1], "HH:mm"))) {
-              //  this.log("Inactivity time. No Api calls between "+this.config.inactive[0]+" and "+this.config.inactive[1]);
-              //} else {
-            //var inactivity = moment.duration();  //NOT FINISHED
             this.config = payload;
-            var callArray = this.prepareAPICalls();
-            if (!this.isRunning) {
-                this.initialCalls(callArray);
-                this.isRunning = true
-            } else {
-                clearInterval(this.rc);
-                this.initialCalls(callArray);
-                this.callAPI(callArray[0]);
-            }
+            this.log("Performing stock API calls...");
+            this.callAPI(this.config.symbols);
+            var interval = this.config.callInterval
+            this.log("Interval: " + Math.round(interval/1000));
+            /*var self = this;
+            clearInterval(this.callInterval); 
+            this.callInterval = setInterval(() => {
+                self.callAPI(this.config.symbols);
+            }, interval);*/
         }
     },
 
@@ -84,28 +81,8 @@ module.exports = NodeHelper.create({
         return callArray;
     },
 
-
-    initialCalls: function(callArray) {
-        this.log("Performing initial 15s calls...");
-        var interval = 15000;
-        this.callAPI(callArray[0]);
-        var counter = 0;
-        var self = this;
-        var ic = setInterval(() => {
-            counter = counter + 1;
-            if (counter == callArray.length) {
-                this.log("Initial calls done...");
-                clearInterval(ic);
-                self.initial = false;
-                self.regularCalls(callArray);
-            } else {
-                self.callAPI(callArray[counter]);
-            }
-        }, interval);
-    },
-
     
-    regularCalls: function(callArray) {
+    /*regularCalls: function(callArray) {
         var counter = 0;
         this.log("Performing regular calls...");
         var interval = Math.round((24 * 60 * 60 * 1000) / (450 - callArray.length));          //500 calls allowed in 24 hours
@@ -117,42 +94,23 @@ module.exports = NodeHelper.create({
             self.callAPI(callArray[counter]);
             self.log("Counter: " + counter);
         }, interval);
-    },
+    },*/
 
     
-    callAPI: function(callItem) {
-        var func = callItem.func;
-        var interval = callItem.interval;
-        this.log("Calling API: " + func + ", stock: " + callItem.symbol);
-        if (["daily", "weekly", "monthly", "intraday", "quote"].includes(func)) {
-            if (func == "intraday") {
-                this.alpha.data[func](callItem.symbol, "compact", "json", callItem.interval)
-                .then(data => {
-                    this.processData(data, callItem);
-                })
-                .catch(error => {
-                    console.error("[MMM-AVStock] ERROR: " + JSON.stringify(error));
-                });
-            } else {
-                //if (func == "daily") func = "daily_adjusted"; 
-                this.alpha.data[func](callItem.symbol, "compact", "json")
-                .then(data => {
-                    this.processData(data, callItem);
-                })
-                .catch(error => {
-                    console.error("[MMM-AVStock] ERROR: " + JSON.stringify(error));
-                });
-            }
-        } else if (func == "technical") {
-            this.alpha.technical[callItem.ma[0].toLowerCase()](callItem.symbol, callItem.interval, callItem.ma[1], "close")
-            .then(data => {
-                this.processData(data, callItem);
-            });
+    callAPI: async function(symbols) {
+        var self = this;
+        for (var i = 0; i < symbols.length; i++) {
+            var stock = {};
+            this.log("Calling quote for stock: " + symbols[i])
+            stock.quotes = await yfinance2.quoteSummary(symbols[i], {modules: ['price']});
+            stock.historical = await yfinance2._chart(symbols[i], {period1: moment().subtract(60, 'days').format('YYYY-MM-DD')});
+            this.log(stock);
+            self.sendSocketNotification("UPDATE_STOCK", stock);
         }
     },
 
 
-    processData: function(data, callItem) {
+    /*processData: function(data, callItem) {
         this.log("Processing API data...");
         var cfg = this.config;
         for (var key in data) {
@@ -235,7 +193,7 @@ module.exports = NodeHelper.create({
                 });
             }
         }             
-    }, 
+    },*/
     
       
     log: function (msg) {

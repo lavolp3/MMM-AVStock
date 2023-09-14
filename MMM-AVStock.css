@@ -10,42 +10,6 @@
   align-items: stretch;
 }
 
-#AVSTOCK * {
-  line-height:1.5em;
-}
-
-#AVSTOCK > div {
-  margin-bottom: 20px;
-}
-
-#AVSTOCK .changeP {
-    margin-left: 6px;
-}
-
-#AVSTOCK .up .change,
-#AVSTOCK .up .changeP,
-#AVSTOCK .profit {
-  color: #0f0;
-}
-
-#AVSTOCK .down .change,
-#AVSTOCK .down .changeP,
-#AVSTOCK .loss {
-  color: #f00f00;
-}
-
-#AVSTOCK .up .change::before,
-#AVSTOCK .up .changeP::before,
-#AVSTOCK .profit::before {
-  content: " ▲";
-}
-
-#AVSTOCK .down .change::before,
-#AVSTOCK .down .changeP::before,
-#AVSTOCK .loss::before {
-  content: " ▼";
-}
-
 #AVSTOCK .stock_item {
   padding: 2px 10px;
   background-color:#444;
@@ -65,35 +29,35 @@
 
 /***** GRID *****/
 
-#AVSTOCK .grid-wrap .grid {
+#AVSTOCK .grid-wrapper {
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;  
   justify-content: space-around;
   align-content: flex-start;
   text-align: left;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
-#AVSTOCK .grid .stock_item {
+#AVSTOCK .grid-wrapper .stock_item {
   width: 110px;
   padding: 2px 2px 2px 4px;
 }
 
-#AVSTOCK .grid .volume {
+#AVSTOCK .grid-wrapper .volume {
   margin-right: 0px
 }
 
 
 /***** TICKER *****/
 
-#AVSTOCK .ticker-wrap {
+#AVSTOCK #ticker-window {
   width: 100%;
   overflow: hidden;
   box-sizing: content-box;
 }
 
-#AVSTOCK .ticker-wrap #ticker {
+#AVSTOCK #ticker-window .ticker-wrapper {
   white-space: nowrap;
   box-sizing: content-box;
   animation: stock-ticker linear infinite;
@@ -102,8 +66,8 @@
   padding-left: 100%;
 }
 
-#AVSTOCK .ticker-wrap #ticker .stock_item {
-  flex-basis: 160px;
+#AVSTOCK .ticker-wrapper .stock_item {
+  width: 110px;
 }
 
 @-webkit-keyframes stock-ticker {
@@ -153,13 +117,29 @@
 
 /***** TABLE *****/
 
-#AVSTOCK_TABLE {
+#AVSTOCK .table-wrapper {
+  display: table;
   border-spacing: 2px;
   border-collapse: separate;
   text-align: center;
 }
 
-#AVSTOCK td {
+#AVSTOCK .table-header {
+  display: table-header-group;
+  font-weight: bold;
+}
+
+#AVSTOCK .table-header-item {
+  display: table-cell;
+}
+
+
+#AVSTOCK .table-wrapper .stock_item {
+  display: table-row;  
+}
+
+#AVSTOCK .stock_item > div {
+  display: table-cell;
   padding:5px 10px;
   line-height:1.5em;
 }
@@ -171,10 +151,8 @@
   text-align: center;
 }
 
-#AVSTOCK .stock_tr .symbol {
-  color:#FFF;
+#AVSTOCK .symbol {
   font-weight:bold;
-  text-align:left;
 }
 
 #AVSTOCK .price {
@@ -199,6 +177,40 @@
 }
 
 /***** ALL *****/
+
+#AVSTOCK * {
+  line-height:1.5em;
+}
+
+#AVSTOCK > div {
+  margin-bottom: 20px;
+}
+
+#AVSTOCK .changeP {
+    margin-left: 6px;
+}
+
+#AVSTOCK .up .change,
+#AVSTOCK .up .changeP,
+#AVSTOCK .profit {
+  color: #0f0;
+}
+
+#AVSTOCK .down .change,
+#AVSTOCK .down .changeP,
+#AVSTOCK .loss {
+  color: #f00f00;
+}
+
+#AVSTOCK .up .change::before,
+#AVSTOCK .profit::before {
+  content: " ▲";
+}
+
+#AVSTOCK .down .change::before,
+#AVSTOCK .loss::before {
+  content: " ▼";
+}
 
 #AVSTOCK .tagline.alert:before {
   color: orange;
