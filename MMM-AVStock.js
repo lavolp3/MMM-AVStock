@@ -9,7 +9,7 @@ Module.register("MMM-AVStock", {
         height: 200,
         direction: 'row',
         classes: 'xsmall',
-        callInterval: 1000*60*5,
+        callInterval: 1000*2*60,
         mode : "table",                  // "table", "ticker", "grid", "series"
         tickerDuration: 20,
         chartDays: 90,
@@ -63,10 +63,14 @@ Module.register("MMM-AVStock", {
 
     start: function() {
         this.sendSocketNotification("INIT", this.config);
-        this.stocks = {
-            quotes: {},
-            series: {}
+        this.stocks = {};
+        for (var i = 0; i < this.config.symbols.length; i++) {
+            this.stocks[this.config.symbols[i]] = {
+                quotes: {},
+                hist: {}
+            };
         };
+        this.log(this.stocks)
         this.loaded = false;
         if (!this.config.showPurchasePrices) this.config.tableHeaders.splice(this.config.tableHeaders.indexOf("pPrice"), 1);
         if (!this.config.showPerformance2Purchase) this.config.tableHeaders.splice(this.config.tableHeaders.indexOf("perf2P"), 1);
@@ -75,7 +79,14 @@ Module.register("MMM-AVStock", {
 
     notificationReceived: function(noti, payload) {
         if (noti == "DOM_OBJECTS_CREATED") {
+            this.log(this.name + " initializing...")
             this.sendSocketNotification("GET_STOCKDATA", this.config);
+            var self = this;
+            setInterval(() => {
+                self.log("Requesting stock Data");
+                self.sendSocketNotification("GET_STOCKDATA", self.config);
+                self.log(this.name + " requesting stock data...")
+            }, this.config.callInterval);
         }
     },
 
@@ -172,7 +183,7 @@ Module.register("MMM-AVStock", {
        
         var self = this;
         for (let i = 0; i < this.config.symbols.length; i++) {
-            console.log("Adding item...");
+            this.log("Adding item...");
             var stock = this.config.symbols[i];
             var pPrice = this.config.purchasePrice[i] || 0;
             var item = document.createElement("div");
@@ -356,9 +367,6 @@ Module.register("MMM-AVStock", {
             var price = document.getElementById(mode + "_price_" + stock);
             price.innerHTML = this.getStockData(stock, "price");
             
-            var price = document.getElementById(mode + "_price_" + stock);
-            price.innerHTML = this.getStockData(stock, "price");
-            
             var changeP = document.getElementById(mode + "_changeP_" + stock);
             changeP.innerHTML = this.getStockData(stock, "changeP");
             
@@ -383,109 +391,119 @@ Module.register("MMM-AVStock", {
     
     
     getStockData: function (stock, value) {
-        if (this.stocks.quotes.hasOwnProperty(stock)) {
-            if (this.stocks.quotes[stock][value]) {
-                return this.stocks.quotes[stock][value];
-            }
+        if (this.stocks.hasOwnProperty(stock)) {
+            return (this.stocks[stock]["quotes"][value] || "---")
         }
-        return "---";
+        return "---"
     },
 
 
     socketNotificationReceived: function(noti, payload) {
-        this.log("Notification received: "+noti);
-        if (noti == "UPDATE_QUOTES") {
-            this.stocks.quotes = this.formatQuotes(payload);
+        this.log("Notification received: " + noti);
+        if (noti == "UPDATE_STOCK") {
+            this.log(payload);
+            var symbol = payload.quotes.price.symbol;
+            this.stocks[symbol]["quotes"] = this.formatQuotes(payload.quotes);
+            this.stocks[symbol]["hist"] = this.formatOHLC(payload.historical);
             this.updateData(this.config.mode);
-        } else if (noti == "UPDATE_HIST") {
-            this.stocks.series = this.formatOHLC(payload);
             if (!this.loaded) { 
                 this.loaded = true;
+                this.log(this.name + " fully loaded...")
                 var self = this;
                 var count = 0;
                 self.updateChart(self.config.symbols[count]);
-                var chartInterval = setInterval( function () {
+                this.chartChanger = setInterval( function () {
+                    count = (count === self.config.symbols.length-1) ? 0 : count + 1;
+                    self.log("Count: " + count);
+                    self.updateChart(self.config.symbols[count]);
+                }, self.config.chartUpdateInterval);
+            }
+        }/* else if (noti == "UPDATE_QUOTES") {
+            this.stocks[payload.symbol]["quotes"] = this.formatQuotes(payload);
+            this.updateData(this.config.mode);
+        } else if (noti == "UPDATE_HIST") {
+            this.log(payload);
+            if (!this.loaded) { 
+                this.loaded = true;
+                this.log(this.name + " fully loaded...")
+                var self = this;
+                var count = 0;
+                self.updateChart(self.config.symbols[count]);
+                var chartChanger = setInterval( function () {
                     count = (count = self.config.symbols.length) ? 0 : count + 1;
+                    self.log("Count: "+count);
                     self.updateChart(self.config.symbols[count]);
                 }, self.config.chartUpdateInterval);
             }
         } else if (noti == "UPDATE_TECH") {
             this.stocks[payload.symbol][payload.func] = payload.data.reverse();
-        }
-        this.log("Stocks updated!");
-        this.log(JSON.stringify(this.stocks));
+        }*/
+        this.log("Stocks updated.");
+        this.log(this.stocks);
     },
 
 
-    formatQuotes: function(data) {
+    formatQuotes: function(stock) {
         var quotes = {};
-        this.updateTime = 0;
-        for (var stock in data) {
-            var stockData = data[stock].price;
-            var stockIndex = this.config.symbols.indexOf(stock);
-            var pPrice = this.config.purchasePrice[stockIndex] || 0;
-            var stockQuote = {
-                symbol: stock,
-                date: moment(stockData.regularMarketTime).format("x"),
-                price: this.formatNumber(stockData.regularMarketPrice, this.config.decimals),
-                open: this.formatNumber(stockData.regularMarketOpen, this.config.decimals),
-                high: this.formatNumber(stockData.regularMarketDayHigh, this.config.decimals),
-                low: this.formatNumber(stockData.regularMarketDayLow, this.config.decimals),
-                prevClose: this.formatNumber(stockData.regularMarketPreviousClose, this.config.decimals),
-                change: this.formatNumber(stockData.regularMarketPrice - stockData.regularMarketPreviousClose, this.config.decimals),
-                changeP: this.formatNumber((stockData.regularMarketPrice - stockData.regularMarketPreviousClose)/stockData.regularMarketPreviousClose * 100, 1) + "%",
-                volume: this.formatVolume(stockData.regularMarketVolume, 0),
-                pPrice: (pPrice > 0) ? this.formatNumber(pPrice, this.config.decimals) : '--',
-                perf2P: (pPrice > 0) ? this.formatNumber((100 - (stockData.regularMarketPreviousClose/pPrice)*100), 1) + '%' : '--',
-                up: (stockData.regularMarketPrice > stockData.regularMarketPreviousClose) ? "up" : (stockData.regularMarketPrice < stockData.regularMarketPreviousClose) ? "down" : "",
-                requestTime: moment(stockData.regularMarketTime).format("x"),
-                profit: (pPrice < stockData.regularMarketPreviousClose)
-            }
-            quotes[stock] = stockQuote;
-            this.updateTime = Math.max(stockQuote.date, this.updateTime);
+        var stockData = stock.price;
+        var stockIndex = this.config.symbols.indexOf(stockData.symbol);
+        var pPrice = this.config.purchasePrice[stockIndex] || 0;
+        var stockQuote = {
+            symbol: stockData.symbol,
+            price: this.formatNumber(stockData.regularMarketPrice, this.config.decimals),
+            open: this.formatNumber(stockData.regularMarketOpen, this.config.decimals),
+            high: this.formatNumber(stockData.regularMarketDayHigh, this.config.decimals),
+            low: this.formatNumber(stockData.regularMarketDayLow, this.config.decimals),
+            prevClose: this.formatNumber(stockData.regularMarketPreviousClose, this.config.decimals),
+            change: this.formatNumber(stockData.regularMarketPrice - stockData.regularMarketPreviousClose, this.config.decimals),
+            changeP: this.formatNumber((stockData.regularMarketPrice - stockData.regularMarketPreviousClose)/stockData.regularMarketPreviousClose * 100, 1) + "%",
+            volume: this.formatVolume(stockData.regularMarketVolume, 0),
+            pPrice: (pPrice > 0) ? this.formatNumber(pPrice, this.config.decimals) : '--',
+            perf2P: (pPrice > 0) ? this.formatNumber((100 - (stockData.regularMarketPreviousClose/pPrice)*100), 1) + '%' : '--',
+            up: (stockData.regularMarketPrice > stockData.regularMarketPreviousClose) ? "up" : (stockData.regularMarketPrice < stockData.regularMarketPreviousClose) ? "down" : "",
+            requestTime: moment(stockData.regularMarketTime).format("x"),
+            profit: (pPrice < stockData.regularMarketPreviousClose)
         }
-        this.log(quotes);
-        return quotes
+        this.updateTime = Math.max(stockQuote.requestTime, this.updateTime) || stockQuote.requestTime;
+        this.log(stockQuote);
+        return stockQuote
     },
     
     
-    formatOHLC: function(data) {
-        var stockSeries = {};
-        for (var stock in data) {
-            var series = data[stock].reverse();
-            var stockIndex = this.config.symbols.indexOf(stock);
-            var pPrice = this.config.purchasePrice[stockIndex] || 0;
-            var values = {
-                ohlc: [],
-                quotes: [],
-                volume: []
-            };
-            for (var i = 0; i < series.length; i++) {
-                values.ohlc.push([
-                    parseInt(moment(series[i].date).format("x")), // the date
-                    parseFloat(series[i].open), // open
-                    parseFloat(series[i].high), // high
-                    parseFloat(series[i].low), // low
-                    parseFloat(series[i].close) // close
-                ]);
-                values.quotes.push([
-                    parseInt(moment(series[i].date).format("x")), // the date
-                    parseFloat(series[i].close) // close
-                ])
-                values.volume.push([
-                    parseInt(moment(series[i].date).format("x")), // the date
-                    parseInt(series[i].volume) // the volume
-                ]);
-            }
-            stockSeries[stock] = values;
+    formatOHLC: function(stock) {
+        this.log(stock);
+        var series = stock.quotes.reverse();
+        var stockIndex = this.config.symbols.indexOf(stock.meta.symbol);
+        var pPrice = this.config.purchasePrice[stockIndex] || 0;
+        var values = {
+            ohlc: [],
+            quotes: [],
+            volume: []
+        };
+        for (var i = 0; i < series.length; i++) {
+            values.ohlc.push([
+                parseInt(moment(series[i].date).format("x")), // the date
+                parseFloat(series[i].open), // open
+                parseFloat(series[i].high), // high
+                parseFloat(series[i].low), // low
+                parseFloat(series[i].close) // close
+            ]);
+            values.quotes.push([
+                parseInt(moment(series[i].date).format("x")), // the date
+                parseFloat(series[i].close) // close
+            ])
+            values.volume.push([
+                parseInt(moment(series[i].date).format("x")), // the date
+                parseInt(series[i].volume) // the volume
+            ]);
         }
-        this.log(stockSeries);
-        return stockSeries
+        this.log(values);
+        return values
     },
     
     
     formatNumber: function (number, digits) {
-        return parseFloat(Math.abs(number)).toLocaleString(this.config.locale, {
+        return parseFloat(/*Math.abs(*/number/*)*/).toLocaleString(this.config.locale, {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits
         });
@@ -509,18 +527,17 @@ Module.register("MMM-AVStock", {
     },
     
 
-    updateChart: function(stock) {
-        this.log("Updating chart for "+stock);
-        var series = this.stocks.series[stock]
+    updateChart: function(symbol) {
+        this.log("Updating chart for " + symbol);
+        var series = this.stocks[symbol].hist
         if (series["ohlc"]) {
             //update header
-            var quote = this.stocks.quotes[stock];
+            var quote = this.stocks[symbol].quotes;
             var head = document.getElementById("stockchart_head");
             head.classList.remove("up","down");
-            var ud = (quote.up) ? "up" : "down";
-            head.classList.add(ud);
+            head.classList.add(quote.up);
             var symbolTag = document.getElementById("stockchart_symbol");
-            symbolTag.innerHTML = this.getStockName(stock);
+            symbolTag.innerHTML = this.getStockName(symbol);
             var priceTag = document.getElementById("stockchart_price");
             priceTag.innerHTML = quote.price;
             var changePTag = document.getElementById("stockchart_changeP");
@@ -541,7 +558,7 @@ Module.register("MMM-AVStock", {
             var stockSeries = [
                 {
                     type: this.config.chartType,
-                    name: stock,
+                    name: symbol,
                     data: (this.config.chartType != 'line') ?  series.ohlc : series.quotes,
                     lineColor: this.config.chartLineColor,
                     yAxis: 0,
@@ -603,16 +620,19 @@ Module.register("MMM-AVStock", {
                     candlestick: {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
+                        clip: false
                     },
 
                     ohlc: {
                         color: (this.config.coloredCandles) ? 'red' : 'none',
                         upColor: (this.config.coloredCandles) ? 'green' : '#ddd',
+                        clip: false
                     },
 
                     column: {
                         colorByPoint: true,
-                        colors: this.getBarColors(series)
+                        colors: this.getBarColors(series),
+                        clip: false
                     }
                 },
 

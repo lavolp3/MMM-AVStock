@@ -16,8 +16,9 @@
     "url": "https://github.com/eouia/MMM-AVStock/issues"
   },
   "dependencies": {
-    "alphavantage": "^1.1.1",
-    "highcharts": "^8.1.2",
-    "yahoo-finance": "^0.3.7"
+    "alphavantage": "^2.4.1",
+    "highcharts": "^9.0.0",
+    "yahoo-finance": "^0.3.7",
+    "yahoo-finance2": "^2.4.3"
   }
 }
