@@ -102,9 +102,19 @@ module.exports = NodeHelper.create({
         for (var i = 0; i < symbols.length; i++) {
             var stock = {};
             this.log("Calling quote for stock: " + symbols[i])
-            stock.quotes = await yfinance2.quoteSummary(symbols[i], {modules: ['price']});
-            stock.historical = await yfinance2._chart(symbols[i], {period1: moment().subtract(60, 'days').format('YYYY-MM-DD')});
-            this.log(stock);
+            try {
+		        stock.quotes = await yfinance2.quoteSummary(symbols[i], {modules: ['price']});
+	        } catch (error) {
+				stock.quotes = "";
+				console.error("Error in loading quote data for Symbol "+symbols[i])
+			};
+            try {
+				stock.historical = await yfinance2._chart(symbols[i], {period1: moment().subtract(60, 'days').format('YYYY-MM-DD')});
+            } catch (error) {
+				stock.historical = "";
+				console.error("Error in loading historical data for Symbol "+symbols[i])
+			};
+			this.log(stock);
             self.sendSocketNotification("UPDATE_STOCK", stock);
         }
     },
