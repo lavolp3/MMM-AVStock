@@ -21,9 +21,13 @@ MagicMirror module for displaying stock price using the Alphavantage API.
 
 ## UPDATES ##
 
+** 4.0.0 **
+- complete switch to yfinance, no alphavantage key necessary
+- cosmetic changes,esp. to ticker
+
 ** 3.0.0 **
-- included yfinance for quote data (no login necessary
-- kept alphavantage (via npm module for tech and historical data
+- included yfinance for quote data (no login necessary)
+- kept alphavantage (via npm module) for tech and historical data
 - new DOM creation methods, should be more flexible now.
 - changed tableHeader and tableHeaderTitles config outlay
 
@@ -67,15 +71,8 @@ cd MMM-AVStock
 npm install
 ```
 
-## Alphavantage Key
-Get your free API key here:
-https://www.alphavantage.co/
-
-Free account has a limit of quota (5 request per minute, 500 requests per day).  
-Over the time Alphavantahge has shown to be unreliable, since more and more stocks and function got excluded.  
-Currently several users (including me) only get stock data for the previous day.   
-I am working on an alternative API.  
-
+## Key
+No Key needed anymore! Yay!
 
 
 ## Configuration
@@ -88,7 +85,6 @@ I am working on an alternative API.
   module: "MMM-AVStock",
   position: "top_left",
   config: {
-    apiKey : "YOUR_ALPHAVANTAGE_KEY",
     symbols : ["AAPL", "GOOGL", "TSLA"],
     alias: ["APPLE", "GOOGLE", "TESLA"],
   }
@@ -102,11 +98,11 @@ I am working on an alternative API.
     module: "MMM-AVStock",
     position: "top_left", //"bottom_bar" is better for `mode:ticker`
     config: {
-        apiKey : "",
         timeFormat: "DD-MM HH:mm",
         width: null,
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
+        purchasePrice: [123.45, 1234.56, 12.34],
         locale: config.language,
         tickerDuration: 20,
         chartDays: 90,
@@ -117,38 +113,14 @@ I am working on an alternative API.
         chartWidth: null,
         showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
-        movingAverage: {
-            type: 'SMA',
-            periods: [200]
-        },
         decimals : 2,
         chartType: 'line',                // 'line', 'candlestick', or 'ohlc'
         chartLineColor: '#eee',
         chartLabelColor: '#eee',
         coloredCandles: true,
-        debug: false
-    }
-},
-```
-
-### mode ticker with own purchase prices
-
-```javascript
-{
-    module: "MMM-AVStock",
-    position: "bottom_bar",
-    config: {
-        apiKey : "",{
-        mode : "ticker",
-        symbols : ["TL0.F","AMZN","MSFT"],
-        alias: ["Tesla","Amazon","Microsoft"],
-        purchasePrice: [123.45, 1234.56, 12.34],
-        decimals: 0,
-        tickerDuration: 20,
-        showChart: false,
-        showVolume: false,
         showPurchasePrices: true,
         showPerformance2Purchase: true,
+        debug: false
     }
 },
 ```
@@ -157,7 +129,6 @@ I am working on an alternative API.
 
 | **Option** | **Type** | **Default** | **Description** |
 | --- | --- | --- | --- |
-| `api_key` | string | '' | Your API Key obtained from <https://www.alphavantage.co/> (limited to 500 requests a day)|
 | `mode` | string | 'table' | Use 'table' for table mode, 'ticker' for ticker mode, or 'grid' for a grid mode. |
 | `width` | integer | null | Width of every module element. Sets the distinctive width of table, ticker, chart, or grid. If you keep this unchanged, width will be set to 100%. Apart from '100%', please use integer values! |
 | `classes` | string | 'small' | Set classes known from module classes (xsmall, small, bright, dimmed etc.) |
@@ -166,7 +137,7 @@ I am working on an alternative API.
 | `symbols` | array | ["AAPL", "GOOGL", "TSLA"] | Array of stock symbols |
 | `alias` | array | [] | Array of aliases to replace the stock symbol. Leave all or each empty to show the symbol name. |
 | `maxTableRows` | integer | null | Set maximum table rows to paginate table with more symbols than rows. |
-| `purchasePrice` | array | [] | Array of own purchase prices |
+| `purchasePrice` | array of numbers | [] | Array of own purchase prices |
 | `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
 | `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
 | `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
@@ -192,4 +163,4 @@ I am working on an alternative API.
 [x] Grid view
 [x] Support purchase Price in all modes
 [ ] Fix Volume bars (not showing correct colors due to highcharts' grouping function
-
+[ ] Support technicals (EMA, SMA)
