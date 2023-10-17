@@ -52,7 +52,7 @@
 /***** TICKER *****/
 
 #AVSTOCK #ticker-window {
-  width: 100%;
+  /*width: 100%;*/
   overflow: hidden;
   box-sizing: content-box;
 }
@@ -64,10 +64,11 @@
   display: flex;
   flex-flow: row nowrap;
   padding-left: 100%;
+  padding-right: 100%;
 }
 
 #AVSTOCK .ticker-wrapper .stock_item {
-  width: 110px;
+  /*width: 110px;*/
 }
 
 @-webkit-keyframes stock-ticker {
@@ -192,23 +193,25 @@
 
 #AVSTOCK .up .change,
 #AVSTOCK .up .changeP,
-#AVSTOCK .profit {
+#AVSTOCK .profit .purchaseChange,
+#AVSTOCK .profit .purchasePrice {
   color: #0f0;
 }
 
 #AVSTOCK .down .change,
 #AVSTOCK .down .changeP,
-#AVSTOCK .loss {
+#AVSTOCK .loss .purchaseChange,
+#AVSTOCK .loss .purchasePrice {
   color: #f00f00;
 }
 
 #AVSTOCK .up .change::before,
-#AVSTOCK .profit::before {
+#AVSTOCK .profit .purchaseChange::before {
   content: " ▲";
 }
 
 #AVSTOCK .down .change::before,
-#AVSTOCK .loss::before {
+#AVSTOCK .loss .purchaseChange::before {
   content: " ▼";
 }
 

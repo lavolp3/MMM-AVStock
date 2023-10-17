@@ -187,7 +187,7 @@ Module.register("MMM-AVStock", {
             var stock = this.config.symbols[i];
             var pPrice = this.config.purchasePrice[i] || 0;
             var item = document.createElement("div");
-            item.className = "stock_item stock " + this.getStockData(stock, "up");
+            item.className = "stock_item stock " + this.getStockData(stock, "up") + " " + this.getStockData(stock, "profit");
             item.id = mode + "_stock_" + stock;
 
             var symbol = document.createElement("div");
@@ -231,7 +231,7 @@ Module.register("MMM-AVStock", {
 
             var purchasePrice = document.createElement("div");
             purchasePrice.className = "purchasePrice";
-            purchasePrice.innerHTML = this.getStockData(stock, "pPrice");
+            purchasePrice.innerHTML = pPrice; //this.getStockData(stock, "pPrice");
             purchasePrice.id = mode + "_purchasePrice_" + stock;
 
             var purchaseChange = document.createElement("div");
@@ -297,7 +297,7 @@ Module.register("MMM-AVStock", {
             tickerWindow.id = "ticker-window";
             tickerWindow.appendChild(elWrapper);
             elWrapper.style.animationDuration = this.config.tickerDuration + 's';
-            elWrapper.style.width = (this.config.symbols.length * 160) + 'px';
+            //elWrapper.style.width = (this.config.symbols.length * 160) + 'px';
             wrapper.appendChild(tickerWindow)
         } else {
             wrapper.appendChild(elWrapper);
@@ -359,7 +359,7 @@ Module.register("MMM-AVStock", {
         for (let i = 0; i< this.config.symbols.length; i++) {
             var stock = this.config.symbols[i];
             var item = document.getElementById(mode + "_stock_" + stock);
-            item.className = "stock_item stock " + this.getStockData(stock, "up"); 
+            item.className = "stock_item stock " + this.getStockData(stock, "up") + " " + this.getStockData(stock, "profit"); ; 
             
             var symbol = document.getElementById(mode + "_symbol_" + stock);
             symbol.innerHTML = this.getStockName(stock);
@@ -383,7 +383,7 @@ Module.register("MMM-AVStock", {
                 vol.innerHTML = this.getStockData(stock, "volume");
             }
             if (this.config.showPerformance2Purchase) {
-                var perf2P = document.getElementById(mode + "__purchaseChange_" + stock);
+                var perf2P = document.getElementById(mode + "_purchaseChange_" + stock);
                 perf2P.innerHTML = this.getStockData(stock, "perf2P");
             }
         }
@@ -459,10 +459,10 @@ Module.register("MMM-AVStock", {
             changeP: this.formatNumber((stockData.regularMarketPrice - stockData.regularMarketPreviousClose)/stockData.regularMarketPreviousClose * 100, 1) + "%",
             volume: this.formatVolume(stockData.regularMarketVolume, 0),
             pPrice: (pPrice > 0) ? this.formatNumber(pPrice, this.config.decimals) : '--',
-            perf2P: (pPrice > 0) ? this.formatNumber((100 - (stockData.regularMarketPreviousClose/pPrice)*100), 1) + '%' : '--',
+            perf2P: (pPrice > 0) ? this.formatNumber(-(100 - (stockData.regularMarketPreviousClose/pPrice)*100), 1) + '%' : '--',
             up: (stockData.regularMarketPrice > stockData.regularMarketPreviousClose) ? "up" : (stockData.regularMarketPrice < stockData.regularMarketPreviousClose) ? "down" : "",
             requestTime: moment(stockData.regularMarketTime).format("x"),
-            profit: (pPrice < stockData.regularMarketPreviousClose)
+            profit: (pPrice <= stockData.regularMarketPrice) ? "profit" : "loss"
         }
         this.updateTime = Math.max(stockQuote.requestTime, this.updateTime) || stockQuote.requestTime;
         this.log(stockQuote);
@@ -534,8 +534,8 @@ Module.register("MMM-AVStock", {
             //update header
             var quote = this.stocks[symbol].quotes;
             var head = document.getElementById("stockchart_head");
-            head.classList.remove("up","down");
-            head.classList.add(quote.up);
+            head.classList.remove("up","down","profit","loss");
+            head.classList.add(quote.up, quote.profit);
             var symbolTag = document.getElementById("stockchart_symbol");
             symbolTag.innerHTML = this.getStockName(symbol);
             var priceTag = document.getElementById("stockchart_price");
