@@ -106,7 +106,8 @@ module.exports = NodeHelper.create({
 		        stock.quotes = await yfinance2.quoteSummary(symbols[i], {modules: ['price']});
 	        } catch (error) {
 				stock.quotes = "";
-				console.error("Error in loading quote data for Symbol "+symbols[i])
+				console.error("Error in loading quote data for Symbol "+symbols[i]);
+				self.log(error);
 			};
             try {
 				stock.historical = await yfinance2._chart(symbols[i], {period1: moment().subtract(60, 'days').format('YYYY-MM-DD')});
@@ -115,6 +116,7 @@ module.exports = NodeHelper.create({
 				console.error("Error in loading historical data for Symbol "+symbols[i])
 			};
 			this.log(stock);
+            this.log(stock.historical.quotes);
             self.sendSocketNotification("UPDATE_STOCK", stock);
         }
     },
