@@ -27,6 +27,7 @@ Module.register("MMM-AVStock", {
         maxTableRows: null,
         showChart: true,
         chartWidth: null,
+        width: null,
         showVolume: true,
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         intraDayInterval: "5min",        // choose from ["1min", "5min", "15min", "30min", "60min"]
@@ -162,6 +163,7 @@ Module.register("MMM-AVStock", {
         var mode = this.config.mode;
         var wrapper = document.createElement("div");
         wrapper.id = "AVSTOCK";
+        wrapper.style.width = this.config.width;
         wrapper.style.flexDirection = this.config.direction;
         wrapper.className = this.config.classes;
         
@@ -418,26 +420,7 @@ Module.register("MMM-AVStock", {
                     self.updateChart(self.config.symbols[count]);
                 }, self.config.chartUpdateInterval);
             }
-        }/* else if (noti == "UPDATE_QUOTES") {
-            this.stocks[payload.symbol]["quotes"] = this.formatQuotes(payload);
-            this.updateData(this.config.mode);
-        } else if (noti == "UPDATE_HIST") {
-            this.log(payload);
-            if (!this.loaded) { 
-                this.loaded = true;
-                this.log(this.name + " fully loaded...")
-                var self = this;
-                var count = 0;
-                self.updateChart(self.config.symbols[count]);
-                var chartChanger = setInterval( function () {
-                    count = (count = self.config.symbols.length) ? 0 : count + 1;
-                    self.log("Count: "+count);
-                    self.updateChart(self.config.symbols[count]);
-                }, self.config.chartUpdateInterval);
-            }
-        } else if (noti == "UPDATE_TECH") {
-            this.stocks[payload.symbol][payload.func] = payload.data.reverse();
-        }*/
+        }
         this.log("Stocks updated.");
         this.log(this.stocks);
     },
@@ -472,7 +455,7 @@ Module.register("MMM-AVStock", {
     
     formatOHLC: function(stock) {
         this.log(stock);
-        var series = stock.quotes.reverse();
+        var series = stock.quotes.sort(function (a,b) { return a[0] - b[0] }).slice(stock.quotes.length - this.config.chartDays);
         var stockIndex = this.config.symbols.indexOf(stock.meta.symbol);
         var pPrice = this.config.purchasePrice[stockIndex] || 0;
         var values = {
@@ -498,6 +481,7 @@ Module.register("MMM-AVStock", {
             ]);
         }
         this.log(values);
+        //values.ohlc.sort(function (a,b) { return a[0] - b[0] });
         return values
     },
     
@@ -579,24 +563,6 @@ Module.register("MMM-AVStock", {
                     }
                 });
             };
-            /*for (var func in stock) {
-                this.log(func);
-                if (func.includes("EMA") || func.includes("SMA")) {
-                    stockSeries.push(
-                        {
-                            type: 'line',
-                            name: func,
-                            data: stock[func],
-                            lineColor: 'orange',
-                            lineWidth: 1,
-                            yAxis: 0,
-                            dataGrouping: {
-                                units: groupingUnits
-                            }
-                        }
-                    )
-                }
-            };*/
             this.log(stockSeries);
 
             // create the chart
