@@ -71,6 +71,21 @@
                         </div>
                     {% endif %}                    
             {%- endfor %}
+            {% for i in range(0, config.symbols.length) -%}
+                <div class="stock_item stock" id="STOCK_{{ config.symbols[i] }}_2">
+                    <div class="symbol item_sect" id="symbol_{{ config.symbols[i] }}_2">{{ config.symbols[i] }}</div>
+                    <div class="anchor item_sect">
+                        <div class="price" id="price_{{ config.symbols[i] }}_2">--</div>
+                        <div class="change" id="change_{{ config.symbols[i] }}_2">---</div>
+                        <div class="changeP" id="changeP_{{ config.symbols[i] }}_2">---</div>                    
+                    </div>
+                    {% if config.showPurchasePrices %}
+                        <div class="purchase anchor item_sect">
+                            <div class="purchasePrice" id="ticker_purchasePrice_{{ config.symbols[i] }}_2">config.purchasePrice[i]</div>
+                            <div class="purchaseChange" id="ticker_purchaseChange_{{ config.symbols[i] }}_2">--%</div>
+                        </div>
+                    {% endif %}                    
+            {%- endfor %}
             </div>
         </div>
     {% endif %}

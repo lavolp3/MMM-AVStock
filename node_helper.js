@@ -16,12 +16,11 @@ module.exports = NodeHelper.create({
     socketNotificationReceived: function(noti, payload) {
         if (noti == "INIT" && !this.isRunning) {
             this.config = payload;
-            //this.alpha = require('alphavantage')({ key: this.config.apiKey });
-            console.log("[AVSTOCK] Initialized.");
+            console.log("[MMM-AVStock] Initialized.");
         } else if (noti == "GET_STOCKDATA") {
             this.config = payload;
             this.log("Performing stock API calls...");
-            this.callAPI(this.config.symbols);
+            this.callAPI(this.config);
             var interval = this.config.callInterval
             this.log("Interval: " + Math.round(interval/1000));
             /*var self = this;
@@ -33,23 +32,23 @@ module.exports = NodeHelper.create({
     },
 
     
-    callAPI: async function(symbols) {
+    callAPI: async function(cfg) {
         var self = this;
-        for (var i = 0; i < symbols.length; i++) {
+        for (var i = 0; i < cfg.symbols.length; i++) {
             var stock = {};
-            this.log("Calling quote for stock: " + symbols[i])
+            this.log("Calling quote for stock: " + cfg.symbols[i])
             try {
-		        stock.quotes = await yfinance2.quoteSummary(symbols[i], {modules: ['price']});
+		        stock.quotes = await yfinance2.quoteSummary(cfg.symbols[i], {modules: ['price']});
 	        } catch (error) {
 				stock.quotes = "";
-				console.error("Error in loading quote data for Symbol "+symbols[i]);
+				console.error("Error in loading quote data for Symbol "+ cfg.symbols[i]);
 				self.log(error);
 			};
             try {
-				stock.historical = await yfinance2._chart(symbols[i], {period1: moment().subtract(60, 'days').format('YYYY-MM-DD')});
+				stock.historical = await yfinance2._chart(cfg.symbols[i], {period1: moment().subtract(cfg.chartDays, 'days').format('YYYY-MM-DD')});
             } catch (error) {
 				stock.historical = "";
-				console.error("Error in loading historical data for Symbol "+symbols[i])
+				console.error("Error in loading historical data for Symbol "+ cfg.symbols[i])
 			};
 			this.log(stock);
             this.log(stock.historical.quotes);
