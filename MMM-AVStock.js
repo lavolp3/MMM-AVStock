@@ -12,7 +12,7 @@ Module.register("MMM-AVStock", {
         callInterval: 1000*2*60,
         mode : "table",                  // "table", "ticker", "grid", "series"
         tickerDuration: 20,
-        chartDays: 90,
+        chartDays: 30,
         tableHeaders: ["symbol", "price", "close", "change", "changeP", "pPrice", "perf2P", "volume"],
         tableHeaderTitles: {
             symbol: "Symbol", 
@@ -383,7 +383,24 @@ Module.register("MMM-AVStock", {
             if (mode != "ticker") {
                 var vol = document.getElementById(mode + "_volume_" + stock);
                 vol.innerHTML = this.getStockData(stock, "volume");
-            }
+                
+            } /*else {                
+                var item2 = document.getElementById(mode + "_stock_" + stock + "_2");
+                item2.className = "stock_item stock " + this.getStockData(stock, "up") + " " + this.getStockData(stock, "profit"); ; 
+                
+                var symbol2 = document.getElementById(mode + "_symbol_" + stock + "_2");
+                symbol2.innerHTML = this.getStockName(stock);
+
+                var price2 = document.getElementById(mode + "_price_" + stock + "_2");
+                price2.innerHTML = this.getStockData(stock, "price");
+                
+                var changeP2 = document.getElementById(mode + "_changeP_" + stock + "_2");
+                changeP2.innerHTML = this.getStockData(stock, "changeP");
+                
+                var change2 = document.getElementById(mode + "_change_" + stock + "_2");
+                change2.innerHTML = this.getStockData(stock, "change");
+            };*/
+            
             if (this.config.showPerformance2Purchase) {
                 var perf2P = document.getElementById(mode + "_purchaseChange_" + stock);
                 perf2P.innerHTML = this.getStockData(stock, "perf2P");
@@ -455,7 +472,7 @@ Module.register("MMM-AVStock", {
     
     formatOHLC: function(stock) {
         this.log(stock);
-        var series = stock.quotes.sort(function (a,b) { return a[0] - b[0] }).slice(stock.quotes.length - this.config.chartDays);
+        var series = stock.quotes.sort(function (a,b) { return a[0] - b[0] })//.slice(stock.quotes.length - this.config.chartDays);
         var stockIndex = this.config.symbols.indexOf(stock.meta.symbol);
         var pPrice = this.config.purchasePrice[stockIndex] || 0;
         var values = {
