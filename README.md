@@ -103,7 +103,6 @@ No Key needed anymore! Yay!
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: ["APPLE", "GOOGLE", "TESLA"],
         purchasePrice: [123.45, 1234.56, 12.34],
-        locale: config.language,
         tickerDuration: 20,
         chartDays: 90,
         maxTableRows: null,
@@ -115,6 +114,7 @@ No Key needed anymore! Yay!
         chartInterval: "daily",          // choose from ["intraday", "daily", "weekly", "monthly"]
         decimals : 2,
         chartType: 'line',                // 'line', 'candlestick', or 'ohlc'
+        alternateGridColor: '#223344',
         chartLineColor: '#eee',
         chartLabelColor: '#eee',
         coloredCandles: true,
@@ -140,10 +140,10 @@ No Key needed anymore! Yay!
 | `purchasePrice` | array of numbers | [] | Array of own purchase prices |
 | `showPurchasePrices` | boolean | false | Whether to show the own purchase prices. |
 | `showPerformance2Purchase` | boolean | false | Whether to show the total performace compared to the own purchase prices. |
-| `locale` | string | config.locale | Locale to convert numbers to the respective number format. |
 | `tickerDuration` | integer | 20 | Determines ticker speed |
 | `chartDays` | integer | 90 | Number of days to show in the chart. (Max 90 days!) |
 | `showChart` | boolean | true | Whether to show the chart. |
+| `alternateGridColor` | string | '#223344' | Use 3- or 6-digit hex numbers as strings here. Change to something like '#000' if you want to have a completely black chart.  |
 | `pureLine` | boolean | false | Set `true` to remove axes and gridlines (and volume) to show a pure line (or candlesticks) |
 | `chartWidth` | integer | null | Determines width of chart, separate from overall width above |
 | `chartInterval` | string | 'daily' | Chart interval. Currently only daily supported! |

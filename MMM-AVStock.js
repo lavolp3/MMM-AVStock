@@ -4,7 +4,6 @@ Module.register("MMM-AVStock", {
         timeFormat: "DD-MM HH:mm",
         symbols : ["AAPL", "GOOGL", "TSLA"],
         alias: [],
-        locale: config.language,
         width: null,
         height: 200,
         direction: 'row',
@@ -39,6 +38,7 @@ Module.register("MMM-AVStock", {
         activeHours: [8, 22],
         chartType: 'line',
         chartUpdateInterval: 30*1000,
+        alternateGridColor: '#223344',
         pureLine: false,
         chartNavigator: false,
         chartLineColor: '#eee',
@@ -71,7 +71,8 @@ Module.register("MMM-AVStock", {
                 hist: {}
             };
         };
-        this.log(this.stocks)
+        this.log(this.stocks);
+        this.config.locale = config.language;
         this.loaded = false;
         if (!this.config.showPurchasePrices) this.config.tableHeaders.splice(this.config.tableHeaders.indexOf("pPrice"), 1);
         if (!this.config.showPerformance2Purchase) this.config.tableHeaders.splice(this.config.tableHeaders.indexOf("perf2P"), 1);
@@ -638,7 +639,7 @@ Module.register("MMM-AVStock", {
                         title: {
                             //text: 'OHLC'
                         },
-                        alternateGridColor: '#223344',
+                        alternateGridColor: this.config.alternateGridColor,
                         gridLineDashStyle: 'longDash',
                         height: (this.config.showVolume && !this.config.pureLine) ? '72%' : '100%',
                         lineColor: this.config.chartLineColor,
