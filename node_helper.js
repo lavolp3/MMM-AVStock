@@ -1,5 +1,12 @@
 const YahooFinance = require('yahoo-finance2').default;
-const yfinance2 = new YahooFinance();
+const yfinance2 = new YahooFinance({
+  fetchOptions: {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; yfinance ^3.11.2)",
+    },
+  },
+});
+
 const moment = require('moment');
 
 var NodeHelper = require("node_helper")
@@ -46,10 +53,10 @@ module.exports = NodeHelper.create({
 				self.log(error);
 			};
             try {
-				stock.historical = await yfinance2._chart(cfg.symbols[i], {period1: moment().subtract(cfg.chartDays, 'days').format('YYYY-MM-DD')});
+				stock.historical = await yfinance2.chart(cfg.symbols[i], {period1: moment().subtract(cfg.chartDays, 'days').format('YYYY-MM-DD')});
             } catch (error) {
 				stock.historical = "";
-				console.error("Error in loading historical data for Symbol "+ cfg.symbols[i])
+				console.error("Error in loading historical data for Symbol "+ cfg.symbols[i]);
 			};
 			this.log(stock);
             this.log(stock.historical.quotes);
