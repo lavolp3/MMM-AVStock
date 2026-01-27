@@ -1,4 +1,5 @@
-const yfinance2 = require('yahoo-finance2').default;
+const YahooFinance = require('yahoo-finance2').default;
+const yfinance2 = new YahooFinance();
 const moment = require('moment');
 
 var NodeHelper = require("node_helper")
